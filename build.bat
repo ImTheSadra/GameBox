@@ -3,9 +3,10 @@ setlocal enabledelayedexpansion
 
 set SDL=D:\code\packages\c++\SDL2\x86_64
 set LUA=D:\code\packages\c++\lua
+set GLEW=D:\code\packages\c++\glew
 
 set output=bin\GameBox.exe
-set FLAGS=-Wno-all -Wno-write-strings -I%SDL%\include -I%LUA%\include -L%SDL%\lib -L%LUA%\lib -lSDL2 -llua
+set FLAGS=-Wno-all -Wno-write-strings -I%SDL%\include -I%LUA%\include -I%GLEW%\include -L%SDL%\lib -L%LUA%\lib -L%GLEW%\lib -lSDL2 -llua -lglew32 -lopengl32 -lglew32mx -lglu32
 
 if not exist "bin" mkdir "bin"
 
@@ -22,6 +23,6 @@ if errorlevel 1 (
 )
 
 echo Running %output%...
-"%output%"
+"%output%" test.lua
 
 pause

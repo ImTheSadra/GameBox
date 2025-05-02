@@ -62,7 +62,7 @@ string MException::translateMessgae(HRESULT hr)
 
 void MException::ShowMessageBox() const noexcept {
     #ifdef _WIN32
-        int r = MessageBoxA(nullptr, what(), GetType(), MB_ICONERROR | MB_OKCANCEL);
+        int r = MessageBoxA(nullptr, what(), (const char*)((string)GetType()+" GameBox").c_str(), MB_ICONERROR | MB_OKCANCEL);
         if (r == IDCANCEL) {
             cerr << GetType() << "\t" << what() << endl;
             exit(1);

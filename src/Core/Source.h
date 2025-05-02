@@ -9,7 +9,8 @@ extern "C" {
 #include <SDL2/SDL.h>
 
 static SDL_Window* window;
-static SDL_Renderer* renderer;
+// static SDL_Renderer* renderer;
+static SDL_GLContext ctx;
 
 class Source {
 public:

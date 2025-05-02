@@ -5,6 +5,9 @@
 #include "Source.h"
 #include "../MException.hpp"
 #include "luaObj.h"
+#include <GL/glew.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 using namespace std;
 
@@ -14,15 +17,17 @@ class Engine{
 public:
     Engine();
     ~Engine();
-    void init();
+    void init(const char* path);
     void run();
 
     static int fill(lua_State* L);
-    static int line(lua_State* L);
+    static int vertex3(lua_State* L);
     static int color(lua_State* L);
+    static int beginQuad(lua_State* L);
+    static int endDraw(lua_State* L);
     static int btn(lua_State* L);
-    static int rect(lua_State* L);
 private:
+    static void handleError(int line, string file);
     // static Uint8* keyState;
     bool running = true;
     Source source;

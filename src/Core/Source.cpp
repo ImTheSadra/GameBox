@@ -40,7 +40,7 @@ void Source::callFunc(const char* funcName) {
 
     if (lua_isfunction(L, -1)) {
         if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-            auto e = MException(__LINE__, __FILE__, "Error calling Lua function " + (string)funcName + lua_tostring(L, -1));
+            auto e = MException(__LINE__, __FILE__, "Error calling Lua function " + (string)funcName + " " +lua_tostring(L, -1));
             lua_pop(L, 1); 
             e.ShowMessageBox();
             throw e;
