@@ -10,14 +10,12 @@ function g_loop()
     useTexture(0)
 
     beginQuad()
-    color(0.6, 0.0, 0.8)
     vertex( 0.5, -0.5, 0.0)
     texCoord(0,0)
 
     vertex( 0.5,  0.5, 0.0)
     texCoord(1,0)
 
-    color(0.0, 0.0, 1.0)
     vertex(-0.5,  0.5, 0.0)
     texCoord(1,1)
     

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 OUTPUT="./bin/GameBox"
-FLAGS="-Wno-all -Wno-write-strings $(sdl2-config --cflags --libs --static-libs) $(pkg-config lua glew glu opengl --cflags --libs)"
+FLAGS="-Wno-all -Wno-write-strings $(sdl2-config --cflags --libs --static-libs) $(pkg-config --cflags --libs lua glew glu opengl SDL2_image)"
 
 mkdir -p bin
 
