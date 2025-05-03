@@ -7,10 +7,11 @@ extern "C" {
 }
 
 #include <SDL2/SDL.h>
+#include "../Assets/Assets.h"
 
 static SDL_Window* window;
-// static SDL_Renderer* renderer;
 static SDL_GLContext ctx;
+static Assets assets;
 
 class Source {
 public:

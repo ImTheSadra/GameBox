@@ -1,7 +1,7 @@
 #!/bin/bash
 
 OUTPUT="./bin/GameBox"
-FLAGS="-Wno-all -Wno-write-strings $(sdl2-config --cflags --libs --static-libs) $(pkg-config lua --cflags --libs)"
+FLAGS="-Wno-all -Wno-write-strings $(sdl2-config --cflags --libs --static-libs) $(pkg-config lua glew glu opengl --cflags --libs)"
 
 mkdir -p bin
 
@@ -17,6 +17,6 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Running $OUTPUT..."
-"$OUTPUT test.lua" 
+"$OUTPUT" test.lua
 
-read -p "Press any key to continue..."
+#read -p "Press any key to continue..."

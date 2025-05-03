@@ -26,6 +26,10 @@ public:
     static int beginQuad(lua_State* L);
     static int endDraw(lua_State* L);
     static int btn(lua_State* L);
+    static int rotate(lua_State* L);
+    static int loadTexture(lua_State* L);
+    static int useTexture(lua_State* L);
+    static int texCoord(lua_State* L);
 private:
     static void handleError(int line, string file);
     // static Uint8* keyState;

@@ -40,11 +40,15 @@ Engine::Engine(){
         throw e;
     }
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    assets = Assets();
+
     glViewport(0, 0, 800, 600);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(30, (float)8 / (float)6, 0.1, 300.0);
     glMatrixMode(GL_MODELVIEW);
+    glTranslatef(0.0f, 0.0f, -4.0f);
     glClearColor(0.2f, 0.2f, 0.2f, 0.7f);
 }
 
@@ -97,8 +101,14 @@ void Engine::init(const char* path){
     source.registerFunc("btn", btn);
     source.registerFunc("beginQuad", beginQuad);
     source.registerFunc("endDraw", endDraw);
+    source.registerFunc("rotate", rotate);
+    source.registerFunc("loadTexture", loadTexture);
+    source.registerFunc("useTexture", useTexture);
+    source.registerFunc("texCoord", texCoord);
 
     source.init(path);
+
+    source.callFunc("g_init");
 }
 
 Engine::~Engine(){
@@ -114,20 +124,17 @@ void Engine::run(){
             if(e.type == SDL_KEYDOWN || e.type == SDL_KEYUP){
                 keyState = (Uint8*)SDL_GetKeyboardState(NULL);
             }
+            if(e.type == SDL_WINDOWEVENT){
+                int w,h;
+                SDL_GetWindowSize(window, &w, &h);
+                glViewport(0,0,w,h);
+
+                glMatrixMode(GL_PROJECTION);
+                glLoadIdentity();
+                gluPerspective(30, (float)w / (float)h, 0.1, 100.0);
+                glMatrixMode(GL_MODELVIEW);
+            }
         }
-        // SDL_SetRenderDrawColor(renderer, 200, 100, 200, 255);
-        // SDL_RenderClear(renderer);
-
-        // glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        // glBegin(GL_QUADS);
-
-        // glVertex3f(-0.5, -0.5, -2.0);
-        // glVertex3f(-0.5,  0.5, -2.0);
-        // glVertex3f( 0.5, -0.5, -2.0);
-        // glVertex3f( 0.5,  0.5, -2.0);
-
-        // glEnd();
-
         source.callFunc("g_loop");
         
         SDL_GL_SwapWindow(window);
@@ -198,25 +205,26 @@ int Engine::fill(lua_State* L){
     return 0;
 }
 
-int Engine::btn(lua_State* L){
+int Engine::btn(lua_State* L) {
     if (lua_gettop(L) != 1) {
-        lua_pushstring(L, "Error: Expected 1 argument for btn (button_id)");
-        lua_error(L); 
-        return 0;
+        return luaL_error(L, "Error: Expected 1 argument for btn (button_id)");
     }
 
-    try{
-        if (!keyState){lua_pushboolean(L, false);return 0;}
+    try {
         int key = luaL_checkinteger(L, 1);
-        bool state = keyState[SDLK_SPACE];
-        cout << state;
-        lua_pushboolean(L, state);
-    } catch (exception error){
-        auto e = MException(__LINE__, __FILE__, error.what());
-        e.ShowMessageBox();
-        throw e;
+        
+        const Uint8* currentKeyState = SDL_GetKeyboardState(NULL);
+        
+        SDL_Scancode scancode = SDL_GetScancodeFromKey(key);
+        
+        bool isPressed = currentKeyState[scancode];
+        lua_pushboolean(L, isPressed);
+        
+        return 1;
+    } 
+    catch (const std::exception& error) {
+        return luaL_error(L, "btn error: %s", error.what());
     }
-
     return 0;
 }
 
@@ -285,4 +293,96 @@ int Engine::endDraw(lua_State* L){
         e.ShowMessageBox();
         throw e;
     }
+
+    return 0;
+}
+
+int Engine::rotate(lua_State* L){
+    if (lua_gettop(L) != 4) {
+        lua_pushstring(L, "Error: Expected 4 arguments (x, y, z)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        float z = luaL_checknumber(L, 3);
+        float angle = luaL_checknumber(L, 4);
+
+        glRotatef(angle, x, y, z);
+    } catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+    return 0;
+}
+
+int Engine::loadTexture(lua_State* L){
+    if (lua_gettop(L) != 1) {
+        lua_pushstring(L, "Error: Expected 1 arguments (path)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        const char* path = luaL_checkstring(L, 1);
+        int id = assets.load(path);
+        if (!id){id = 0;}
+        lua_pushinteger(L, id);
+    } catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+    return 0;
+}
+
+int Engine::useTexture(lua_State* L){
+    if (lua_gettop(L) != 1){
+        lua_pushstring(L, "Error: Expected 1 arguments (id)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        int id = luaL_checkinteger(L, 1);
+        GLuint texture = assets.get(id);
+
+        if (texture == 0) {
+            lua_pushstring(L, "Error: Invalid texture ID");
+            lua_error(L); 
+            return 0;
+        }
+
+        glBindTexture(GL_TEXTURE_2D, texture);
+    } catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+    return 0;
+}
+
+int Engine::texCoord(lua_State* L){
+    if (lua_gettop(L) != 2){
+        lua_pushstring(L, "Error: Expected 1 arguments (id)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        glTexCoord2f(x,y);
+    } catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+    return 0;
 }

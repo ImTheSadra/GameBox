@@ -1,27 +1,60 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: ===== Configuration =====
 set SDL=D:\code\packages\c++\SDL2\x86_64
 set LUA=D:\code\packages\c++\lua
 set GLEW=D:\code\packages\c++\glew
 
-set output=bin\GameBox.exe
-set FLAGS=-Wno-all -Wno-write-strings -I%SDL%\include -I%LUA%\include -I%GLEW%\include -L%SDL%\lib -L%LUA%\lib -L%GLEW%\lib -lSDL2 -llua -lglew32 -lopengl32 -lglew32mx -lglu32
+set output=bin\GBox.exe
+set assets_dir=assets
+set build_dir=build
+set FLAGS=-Wno-all -Wno-write-strings -lgdi32 -I%SDL%\include -I%LUA%\include -I%GLEW%\include -L%SDL%\lib -L%LUA%\lib -L%GLEW%\lib -lSDL2 -llua -lglew32 -lopengl32 -lglew32mx -lglu32 -lSDL2_image
 
+:: ===== Prepare Directories =====
 if not exist "bin" mkdir "bin"
+if not exist "%build_dir%" mkdir "%build_dir%"
 
+:: ===== Resource Compilation (windres) =====
+@REM if exist "%assets%/resources.rc" (
+@REM     echo Compiling resources...
+@REM     windres "%assets%/resources.rc" -o %build_dir%\resources.o
+@REM     if errorlevel 1 (
+@REM         echo Resource compilation failed
+@REM         pause
+@REM         exit /b 1
+@REM     )
+@REM     set RESOURCE_OBJ=%build_dir%\resources.o
+@REM )
+
+:: ===== Compilation =====
 set source=
-for /r src %%i in (*.cpp) do set source=!source! "%%i"
+for /r src %%i in (*.cpp) do (
+    set obj=%build_dir%\%%~ni.o
+    echo Compiling %%~nxi...
+    g++ -c "%%i" %FLAGS% -o "!obj!"
+    if errorlevel 1 (
+        echo Compilation failed on %%~nxi
+        pause
+        exit /b 1
+    )
+    set source=!source! "!obj!"
+)
 
-echo Compiling !source!...
+:: ===== Linking =====
+echo Linking...
 g++ !source! %FLAGS% -o "%output%"
 
 if errorlevel 1 (
-    echo Compilation failed with error %errorlevel%
+    echo Linking failed with error %errorlevel%
     pause
     exit /b %errorlevel%
 )
 
+:: ===== Clean =====
+del /q %build_dir%
+
+:: ===== Run =====
 echo Running %output%...
 "%output%" test.lua
 
