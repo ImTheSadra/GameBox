@@ -105,6 +105,8 @@ void Engine::init(const char* path){
     source.registerFunc("loadTexture", loadTexture);
     source.registerFunc("useTexture", useTexture);
     source.registerFunc("texCoord", texCoord);
+    source.registerFunc("mousePos", mousePos);
+    source.registerFunc("mouseBtn", mouseBtn);
 
     source.init(path);
 
@@ -321,20 +323,24 @@ int Engine::rotate(lua_State* L){
 
 int Engine::loadTexture(lua_State* L){
     if (lua_gettop(L) != 1) {
-        lua_pushstring(L, "Error: Expected 1 arguments (path)");
+        lua_pushstring(L, "Error: Expected 1 argument (path)");
         lua_error(L); 
         return 0;
     }
-
-    try{
+    
+    try {
         const char* path = luaL_checkstring(L, 1);
         int id = assets.load(path);
-        if (!id){id = 0;}
+        
         lua_pushinteger(L, id);
-    } catch(exception error){
+        
+        return 1;
+    } 
+    catch(exception& error) {
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
-        throw e;
+        lua_pushnil(L); 
+        return 1;
     }
 
     return 0;
@@ -369,7 +375,7 @@ int Engine::useTexture(lua_State* L){
 
 int Engine::texCoord(lua_State* L){
     if (lua_gettop(L) != 2){
-        lua_pushstring(L, "Error: Expected 1 arguments (id)");
+        lua_pushstring(L, "Error: Expected 1 arguments (x, y)");
         lua_error(L); 
         return 0;
     }
@@ -385,4 +391,56 @@ int Engine::texCoord(lua_State* L){
     }
 
     return 0;
+}
+
+int Engine::mouseBtn(lua_State* L){
+    if (lua_gettop(L) != 1){
+        lua_pushstring(L, "Error: Expected 1 arguments (id)");
+        lua_error(L); 
+        return 0;
+    }
+    try{
+        int button = luaL_checkinteger(L, 1);
+        
+        Uint32 mouseState = SDL_GetMouseState(NULL, NULL);
+        
+        bool isPressed = false;
+        switch (button) {
+            case 1: isPressed = (mouseState & SDL_BUTTON(SDL_BUTTON_LEFT)); break;
+            case 2: isPressed = (mouseState & SDL_BUTTON(SDL_BUTTON_MIDDLE)); break;
+            case 3: isPressed = (mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT)); break;
+            default:
+                lua_pushstring(L, "Error: Invalid button (1=left, 2=middle, 3=right)");
+                lua_error(L);
+                return 0;
+        }
+
+        lua_pushboolean(L, isPressed);
+        return 1; 
+    } catch (exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+
+    return 1;
+}
+
+int Engine::mousePos(lua_State* L) {
+    try {
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+
+        lua_pushinteger(L, x);
+        lua_pushinteger(L, y);
+
+        return 2; 
+    } 
+    catch (const exception& error) {
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        lua_pushnil(L);
+        return 1;
+    }
 }

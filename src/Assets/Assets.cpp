@@ -23,7 +23,10 @@ int Assets::load(const char* path) {
 
     SDL_FreeSurface(surface);
 
-    return currentId++;
+    int id = currentId;
+    currentId++;
+
+    return id;
 }
 
 GLuint Assets::get(int id) {
