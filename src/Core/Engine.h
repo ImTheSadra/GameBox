@@ -32,6 +32,7 @@ public:
     static int texCoord(lua_State* L);
     static int mouseBtn(lua_State* L);
     static int mousePos(lua_State* L);
+    static int title(lua_State* L);
 private:
     static void handleError(int line, string file);
     // static Uint8* keyState;

@@ -107,6 +107,7 @@ void Engine::init(const char* path){
     source.registerFunc("texCoord", texCoord);
     source.registerFunc("mousePos", mousePos);
     source.registerFunc("mouseBtn", mouseBtn);
+    source.registerFunc("title", title);
 
     source.init(path);
 
@@ -443,4 +444,24 @@ int Engine::mousePos(lua_State* L) {
         lua_pushnil(L);
         return 1;
     }
+}
+
+int Engine::title(lua_State* L){
+    if (lua_gettop(L) != 1){
+        lua_pushstring(L, "Error: Expected 1 arguments (title)");
+        lua_error(L); 
+        return 0;
+    }
+    try{
+        string title = luaL_checkstring(L, 1);
+        SDL_SetWindowTitle(window, title.c_str());
+        return 0; 
+    } catch (exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+
+    return 0;
 }
