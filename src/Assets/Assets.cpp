@@ -5,7 +5,7 @@ Assets::Assets() : currentId(0) {}
 int Assets::load(const char* path) {
     SDL_Surface* surface = IMG_Load(path);
     if (!surface) {
-        MException(__LINE__, __FILE__, "Failed to load image: " + string(path) + " Error: " + IMG_GetError()).ShowMessageBox();
+        MException(__LINE__, __FILE__, "Failed to load image: " + string(path) + " Error: " + SDL_GetError()).ShowMessageBox();
         return -1; 
     }
 
@@ -21,7 +21,7 @@ int Assets::load(const char* path) {
 
     textures[currentId] = textureID;
 
-    SDL_FreeSurface(surface);
+    SDL_DestroySurface(surface);
 
     int id = currentId;
     currentId++;
@@ -30,12 +30,10 @@ int Assets::load(const char* path) {
 }
 
 GLuint Assets::get(int id) {
-    // Find and return the texture ID based on the provided key (id)
     if (textures.find(id) != textures.end()) {
         return textures[id];
     } else {
-        // If texture is not found, throw an exception or return an invalid texture ID
         MException(__LINE__, __FILE__, "Texture ID not found: " + to_string(id)).ShowMessageBox();
-        return 0;  // Return an invalid texture ID
+        return 0;
     }
 }

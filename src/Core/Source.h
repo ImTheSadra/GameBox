@@ -6,8 +6,9 @@ extern "C" {
     #include <lua5.4/lauxlib.h>
 }
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include "../Assets/Assets.h"
+// #include "../Assets/Shader.h"
 
 static SDL_Window* window;
 static SDL_GLContext ctx;

@@ -1,9 +1,9 @@
 local texture = 0
+local angle = 0
 
 function g_init()
     texture = loadTexture("gbox.png")
     title("GBox Demo")
-    print("Welcome to GBox Game Engine :)")
 end
 
 function g_loop()
@@ -11,7 +11,7 @@ function g_loop()
 
     useTexture(texture)
     
-    beginQuad()
+    beginDraw(DRAW_QUADS)
         color(0.7, 0.0, 0.8)
         vertex(0.5, -0.5, 0.0)
         texCoord(0, 0)
@@ -27,5 +27,11 @@ function g_loop()
         texCoord(0, 1)
     endDraw()
 
-    rotate(0,1,0, 0.5)
+    if btn(K_SPACE) then
+        angle = angle+0.01
+        camera(
+            math.sin(angle)*4, 0, math.cos(angle)*4,
+            0,0,0
+        )
+    end
 end

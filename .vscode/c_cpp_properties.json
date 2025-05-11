@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "D:\\code\\packages\\c++\\lua\\include",
-                "D:\\code\\packages\\c++\\SDL2\\x86_64\\include",
+                "D:\\code\\packages\\c++\\SDL3\\include",
                 "D:\\code\\packages\\c++\\glew\\include"
             ],
             "defines": [

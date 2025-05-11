@@ -1,6 +1,4 @@
-#pragma once
-
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <iostream>
 #include "Source.h"
 #include "../MException.hpp"
@@ -8,10 +6,11 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+;
+static Uint8* keyState;
 
 using namespace std;
 
-static Uint8* keyState;
 
 class Engine{
 public:
@@ -23,7 +22,7 @@ public:
     static int fill(lua_State* L);
     static int vertex3(lua_State* L);
     static int color(lua_State* L);
-    static int beginQuad(lua_State* L);
+    static int beginDraw(lua_State* L);
     static int endDraw(lua_State* L);
     static int btn(lua_State* L);
     static int rotate(lua_State* L);
@@ -32,10 +31,16 @@ public:
     static int texCoord(lua_State* L);
     static int mouseBtn(lua_State* L);
     static int mousePos(lua_State* L);
+    static int mouseSetPos(lua_State* L);
+    static int mouseVisible(lua_State* L);
     static int title(lua_State* L);
+    static int translate(lua_State* L);
+    static int setCam(lua_State* L);
 private:
     static void handleError(int line, string file);
     // static Uint8* keyState;
     bool running = true;
     Source source;
+    static float CamX, CamY, CamZ, TarX, TarY, TarZ;
+    void updateView();
 };

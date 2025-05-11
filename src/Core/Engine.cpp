@@ -1,18 +1,25 @@
 #include "Engine.h"
 
+float Engine::CamX = 0.0f;
+float Engine::CamY = 0.0f;
+float Engine::CamZ = 3.0f;
+float Engine::TarX = 0.0f;
+float Engine::TarY = 0.0f;
+float Engine::TarZ = 0.0f;
+
 Engine::Engine(){
-    if (SDL_Init(SDL_INIT_VIDEO) < 0){
+    int x = SDL_Init(SDL_INIT_VIDEO);
+    // cout << x << endl; 
+    if (x < 0){
         auto e = MException(__LINE__, __FILE__, SDL_GetError());
         e.ShowMessageBox();
-        throw e;
+        // throw e;
     }
 
     window = SDL_CreateWindow(
         "GameBox - 3D :)",
-        SDL_WINDOWPOS_UNDEFINED,
-        SDL_WINDOWPOS_UNDEFINED,
         800, 600, 
-        SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
+        SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
     if(!window){
         auto e = MException(__LINE__, __FILE__, SDL_GetError());
@@ -48,14 +55,8 @@ Engine::Engine(){
     glLoadIdentity();
     gluPerspective(30, (float)8 / (float)6, 0.1, 300.0);
     glMatrixMode(GL_MODELVIEW);
-    glTranslatef(0.0f, 0.0f, -4.0f);
     glClearColor(0.2f, 0.2f, 0.2f, 0.7f);
 }
-
-#include <iostream>
-#include <string>
-#include <SDL2/SDL.h>
-#include <GL/glew.h>
 
 void Engine::handleError(int line, string file) {
     const char* sdlError = SDL_GetError();
@@ -78,16 +79,10 @@ void Engine::handleError(int line, string file) {
             case GL_INVALID_FRAMEBUFFER_OPERATION: glErrorStr = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
             default:                   glErrorStr = "Unknown OpenGL error";
         }
-        // std::cerr << "OpenGL Error (" << file << ":" << line << "): " << glErrorStr << std::endl;
         auto e = MException(__LINE__, __FILE__, ("OpenGL Error\t"+glErrorStr).c_str());
-        // glErr = glGetError();
     }
 
-    // GLenum glewErr = glewgeterror();
-    // if (glewErr != GLEW_OK) {
-    //     const char* glewErrorStr = reinterpret_cast<const char*>(glewGetErrorString(glewErr));
-    //     std::cerr << "GLEW Error (" << file << ":" << line << "): " << glewErrorStr << std::endl;
-    // }
+    // shader = Shader();
 }
 
 void Engine::init(const char* path){
@@ -95,19 +90,26 @@ void Engine::init(const char* path){
         source.setInt(obj.first, obj.second);
     }
 
+    for(auto &obj:gl_objects){
+        source.setInt(obj.first, obj.second);
+    }
+
     source.registerFunc("fill", fill);
     source.registerFunc("color", color);
     source.registerFunc("vertex", vertex3);
     source.registerFunc("btn", btn);
-    source.registerFunc("beginQuad", beginQuad);
+    source.registerFunc("beginDraw", beginDraw);
     source.registerFunc("endDraw", endDraw);
     source.registerFunc("rotate", rotate);
     source.registerFunc("loadTexture", loadTexture);
     source.registerFunc("useTexture", useTexture);
     source.registerFunc("texCoord", texCoord);
     source.registerFunc("mousePos", mousePos);
+    source.registerFunc("mouseSetPos", mouseSetPos);
     source.registerFunc("mouseBtn", mouseBtn);
     source.registerFunc("title", title);
+    source.registerFunc("translate", translate);
+    source.registerFunc("camera", setCam);
 
     source.init(path);
 
@@ -115,19 +117,29 @@ void Engine::init(const char* path){
 }
 
 Engine::~Engine(){
-    SDL_GL_DeleteContext(ctx);
+    SDL_GL_DestroyContext(ctx);
     SDL_DestroyWindow(window);
+}
+
+void Engine::updateView() {
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    gluLookAt(
+        CamX, CamY, CamZ,
+        TarX, TarY, TarZ,
+        0, 1, 0
+    );
 }
 
 void Engine::run(){
     SDL_Event e;
     while(running){
         while(SDL_PollEvent(&e)){
-            if(e.type == SDL_QUIT){running = false;}
-            if(e.type == SDL_KEYDOWN || e.type == SDL_KEYUP){
+            if(e.type == SDL_EVENT_QUIT){running = false;}
+            if(e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP){
                 keyState = (Uint8*)SDL_GetKeyboardState(NULL);
             }
-            if(e.type == SDL_WINDOWEVENT){
+            if(e.type == SDL_EVENT_WINDOW_RESIZED){
                 int w,h;
                 SDL_GetWindowSize(window, &w, &h);
                 glViewport(0,0,w,h);
@@ -138,6 +150,7 @@ void Engine::run(){
                 glMatrixMode(GL_MODELVIEW);
             }
         }
+        updateView();
         source.callFunc("g_loop");
         
         SDL_GL_SwapWindow(window);
@@ -215,14 +228,18 @@ int Engine::btn(lua_State* L) {
 
     try {
         int key = luaL_checkinteger(L, 1);
-        
-        const Uint8* currentKeyState = SDL_GetKeyboardState(NULL);
-        
-        SDL_Scancode scancode = SDL_GetScancodeFromKey(key);
-        
-        bool isPressed = currentKeyState[scancode];
+        SDL_Keycode keycode = static_cast<SDL_Keycode>(key);
+        SDL_Keymod keymod = SDL_GetModState();
+
+        SDL_Scancode scancode = SDL_GetScancodeFromKey(keycode, &keymod);
+        if (scancode == SDL_SCANCODE_UNKNOWN) {
+            lua_pushboolean(L, false);
+            return 1;
+        }
+
+        auto state = SDL_GetKeyboardState(NULL);
+        bool isPressed = (state[scancode] != 0);
         lua_pushboolean(L, isPressed);
-        
         return 1;
     } 
     catch (const std::exception& error) {
@@ -262,15 +279,23 @@ int Engine::vertex3(lua_State* L) {
     return 0;
 }
 
-int Engine::beginQuad(lua_State* L){
+int Engine::beginDraw(lua_State* L){
+    if(lua_gettop(L) != 1){
+        lua_pushstring(L, "Error: 'beginDraw' Expected 1 argument (DRAW_MODE)");
+        lua_error(L);
+        return 0;
+    }
+
     try {
         if (!ctx) {
             lua_pushstring(L, "Error: opengl is not initialized");
             lua_error(L);
             return 0;
         }
+        
+        double MODE = luaL_checknumber(L, 1);
 
-        glBegin(GL_QUADS);
+        glBegin(MODE);
     }
     catch (exception error) {
         auto e = MException(__LINE__, __FILE__, error.what());
@@ -284,7 +309,7 @@ int Engine::beginQuad(lua_State* L){
 int Engine::endDraw(lua_State* L){
     try {
         if (!ctx) {
-            lua_pushstring(L, "Error: opengl is not initialized");
+            lua_pushstring(L, "Error: 'endDraw' opengl is not initialized");
             lua_error(L);
             return 0;
         }
@@ -302,7 +327,7 @@ int Engine::endDraw(lua_State* L){
 
 int Engine::rotate(lua_State* L){
     if (lua_gettop(L) != 4) {
-        lua_pushstring(L, "Error: Expected 4 arguments (x, y, z)");
+        lua_pushstring(L, "Error: 'rotate' Expected 4 arguments (x, y, z)");
         lua_error(L); 
         return 0;
     }
@@ -324,7 +349,7 @@ int Engine::rotate(lua_State* L){
 
 int Engine::loadTexture(lua_State* L){
     if (lua_gettop(L) != 1) {
-        lua_pushstring(L, "Error: Expected 1 argument (path)");
+        lua_pushstring(L, "Error: 'loadTexture' Expected 1 argument (path)");
         lua_error(L); 
         return 0;
     }
@@ -349,7 +374,7 @@ int Engine::loadTexture(lua_State* L){
 
 int Engine::useTexture(lua_State* L){
     if (lua_gettop(L) != 1){
-        lua_pushstring(L, "Error: Expected 1 arguments (id)");
+        lua_pushstring(L, "Error: 'useTexture' Expected 1 arguments (id)");
         lua_error(L); 
         return 0;
     }
@@ -376,7 +401,7 @@ int Engine::useTexture(lua_State* L){
 
 int Engine::texCoord(lua_State* L){
     if (lua_gettop(L) != 2){
-        lua_pushstring(L, "Error: Expected 1 arguments (x, y)");
+        lua_pushstring(L, "Error: 'texCoord' Expected 1 arguments (x, y)");
         lua_error(L); 
         return 0;
     }
@@ -396,7 +421,7 @@ int Engine::texCoord(lua_State* L){
 
 int Engine::mouseBtn(lua_State* L){
     if (lua_gettop(L) != 1){
-        lua_pushstring(L, "Error: Expected 1 arguments (id)");
+        lua_pushstring(L, "Error: 'mouseBtn' Expected 1 arguments (id)");
         lua_error(L); 
         return 0;
     }
@@ -407,11 +432,13 @@ int Engine::mouseBtn(lua_State* L){
         
         bool isPressed = false;
         switch (button) {
-            case 1: isPressed = (mouseState & SDL_BUTTON(SDL_BUTTON_LEFT)); break;
-            case 2: isPressed = (mouseState & SDL_BUTTON(SDL_BUTTON_MIDDLE)); break;
-            case 3: isPressed = (mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT)); break;
+            case 1: isPressed = (mouseState & SDL_BUTTON_LMASK); break;
+            case 2: isPressed = (mouseState & SDL_BUTTON_MMASK); break;
+            case 3: isPressed = (mouseState & SDL_BUTTON_RMASK); break;
+            case 4: isPressed = (mouseState & SDL_BUTTON_X1MASK); break;
+            case 5: isPressed = (mouseState & SDL_BUTTON_X2MASK); break;
             default:
-                lua_pushstring(L, "Error: Invalid button (1=left, 2=middle, 3=right)");
+                lua_pushstring(L, "Error: Invalid button (1=left, 2=middle, 3=right, 4=xbtn, 5=xbtn)");
                 lua_error(L);
                 return 0;
         }
@@ -430,11 +457,11 @@ int Engine::mouseBtn(lua_State* L){
 
 int Engine::mousePos(lua_State* L) {
     try {
-        int x, y;
-        SDL_GetMouseState(&x, &y);
+        float x, y;
+        SDL_GetMouseState(&x,&y);
 
-        lua_pushinteger(L, x);
-        lua_pushinteger(L, y);
+        lua_pushnumber(L, x);
+        lua_pushnumber(L, y);
 
         return 2; 
     } 
@@ -448,7 +475,7 @@ int Engine::mousePos(lua_State* L) {
 
 int Engine::title(lua_State* L){
     if (lua_gettop(L) != 1){
-        lua_pushstring(L, "Error: Expected 1 arguments (title)");
+        lua_pushstring(L, "Error: 'title' Expected 1 arguments (title)");
         lua_error(L); 
         return 0;
     }
@@ -463,5 +490,96 @@ int Engine::title(lua_State* L){
     }
 
 
+    return 0;
+}
+
+int Engine::translate(lua_State* L){
+    if (lua_gettop(L) != 3){
+        lua_pushstring(L, "Error: 'translate' Expected 3 arguments (x,y,z)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        float z = luaL_checknumber(L, 3);
+
+        glTranslatef(x,y,z);
+    }catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+    return 0;
+}
+
+int Engine::setCam(lua_State* L){
+    if (lua_gettop(L) != 6){
+        lua_pushstring(L, "Error: 'camera' Expected 6 arguments (x,y,z,tx,ty,tz)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        float x = luaL_checknumber(L, 1);
+        float y = luaL_checknumber(L, 2);
+        float z = luaL_checknumber(L, 3);
+        float tx = luaL_checknumber(L, 4);
+        float ty = luaL_checknumber(L, 5);
+        float tz = luaL_checknumber(L, 6);
+
+        CamX = x; CamY = y; CamZ = z;
+        TarX = tx; TarY = ty; TarZ = tz;
+    }catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+    return 0;
+}
+
+int Engine::mouseSetPos(lua_State* L){
+    if (lua_gettop(L) != 2){
+        lua_pushstring(L, "Error: 'mouseSetPos' Expected 2 arguments (x,y)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        double x = luaL_checknumber(L, 1);
+        double y = luaL_checknumber(L, 2);
+        SDL_WarpMouseInWindow(window, x, y);
+    }catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+    return 0;
+}
+
+int Engine::mouseVisible(lua_State* L){
+    if (lua_gettop(L) != 1){
+        lua_pushstring(L, "Error: 'mouseVisible' Expected 1 arguments (isVisible)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        bool isv = luaL_checkinteger(L, 1);
+        int result = SDL_SetWindowRelativeMouseMode(window, isv);
+
+        if (result != 0) {
+            lua_pushstring(L, SDL_GetError());
+            lua_error(L);
+            return 0;
+        }
+
+        return 0;
+    }catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
     return 0;
 }
