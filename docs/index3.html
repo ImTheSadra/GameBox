@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GBox Engine | Lua Game Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="./favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+        
+        .code-block {
+            background: #1e1e2e;
+            border-left: 4px solid #7e3af2;
+        }
+        
+        .lua-keyword { color: #c678dd; }
+        .lua-function { color: #61afef; }
+        .lua-number { color: #d19a66; }
+        .lua-string { color: #98c379; }
+        .lua-comment { color: #5c6370; }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-['Inter']">
+    <div class="container mx-auto px-4 py-12 max-w-5xl">
+        <!-- Header -->
+        <header class="mb-16 text-center">
+            <h1 class="text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">GBox Engine</h1>
+            <p class="text-xl text-gray-400">C++ Game Engine with OpenGL/SDL3 and Lua Scripting</p>
+        </header>
+
+        <!-- Quick Start -->
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <i class="fas fa-rocket mr-3 text-purple-500"></i>
+                Quick Start
+            </h2>
+            
+            <div class="code-block rounded-lg p-6 mb-6 font-mono text-sm overflow-x-auto">
+                <pre><span class="lua-keyword">local</span> texture = <span class="lua-number">0</span>
+<span class="lua-keyword">local</span> angle = <span class="lua-number">0</span>
+
+<span class="lua-keyword">function</span> <span class="lua-function">g_init</span>()
+    texture = <span class="lua-function">loadTexture</span>(<span class="lua-string">"gbox.png"</span>)
+    <span class="lua-function">title</span>(<span class="lua-string">"GBox Demo"</span>)
+<span class="lua-keyword">end</span>
+
+<span class="lua-keyword">function</span> <span class="lua-function">g_loop</span>()
+    <span class="lua-function">fill</span>(<span class="lua-number">1</span>, <span class="lua-number">0.8</span>, <span class="lua-number">1</span>)
+    
+    <span class="lua-function">useTexture</span>(texture)
+    
+    <span class="lua-function">beginDraw</span>(DRAW_QUADS)
+        <span class="lua-function">color</span>(<span class="lua-number">0.7</span>, <span class="lua-number">0.0</span>, <span class="lua-number">0.8</span>)
+        <span class="lua-function">vertex</span>(<span class="lua-number">0.5</span>, -<span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">0</span>, <span class="lua-number">0</span>)
+
+        <span class="lua-function">vertex</span>(<span class="lua-number">0.5</span>, <span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">1</span>, <span class="lua-number">0</span>)
+
+        <span class="lua-function">color</span>(<span class="lua-number">0.0</span>, <span class="lua-number">0.0</span>, <span class="lua-number">0.8</span>)
+        <span class="lua-function">vertex</span>(-<span class="lua-number">0.5</span>, <span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">1</span>, <span class="lua-number">1</span>)
+
+        <span class="lua-function">vertex</span>(-<span class="lua-number">0.5</span>, -<span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">0</span>, <span class="lua-number">1</span>)
+    <span class="lua-function">endDraw</span>()
+
+    <span class="lua-keyword">if</span> <span class="lua-function">btn</span>(K_SPACE) <span class="lua-keyword">then</span>
+        angle = angle+<span class="lua-number">0.01</span>
+        <span class="lua-function">camera</span>(
+            math.sin(angle)*<span class="lua-number">4</span>, <span class="lua-number">0</span>, math.cos(angle)*<span class="lua-number">4</span>,
+            <span class="lua-number">0</span>,<span class="lua-number">0</span>,<span class="lua-number">0</span>
+        )
+    <span class="lua-keyword">end</span>
+<span class="lua-keyword">end</span></pre>
+            </div>
+        </section>
+
+        <!-- Core Features -->
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <i class="fas fa-cog mr-3 text-purple-500"></i>
+                Core Features
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Feature 1 -->
+                <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                    <div class="text-purple-500 text-2xl mb-3">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Lua Scripting</h3>
+                    <p class="text-gray-400">Full game logic controlled through simple Lua scripts with hot-reloading support.</p>
+                </div>
+                
+                <!-- Feature 2 -->
+                <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                    <div class="text-purple-500 text-2xl mb-3">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Input Handling</h3>
+                    <p class="text-gray-400">Simple API for keyboard, mouse and gamepad input.</p>
+                </div>
+                
+                <!-- Feature 3 -->
+                <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                    <div class="text-purple-500 text-2xl mb-3">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">OpenGL Rendering</h3>
+                    <p class="text-gray-400">Immediate-mode style rendering with textures, colors and vertex data.</p>
+                </div>
+                
+                <!-- Feature 4 -->
+                <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                    <div class="text-purple-500 text-2xl mb-3">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">3D Camera</h3>
+                    <p class="text-gray-400">Simple camera control for both 2D and 3D perspectives.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- API Reference -->
+        <section>
+            <h2 class="text-3xl font-bold mb-6 flex items-center">
+                <i class="fas fa-book mr-3 text-purple-500"></i>
+                API Reference
+            </h2>
+            
+            <div class="space-y-8">
+                <!-- Function Group -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-purple-400">Core Functions</h3>
+                    <div class="code-block rounded-lg p-4 mb-4">
+                        <span class="lua-function">g_init()</span> <span class="lua-comment">-- Called once at startup</span><br>
+                        <span class="lua-function">g_loop()</span> <span class="lua-comment">-- Called every frame</span><br>
+                        <span class="lua-function">title(text)</span> <span class="lua-comment">-- Set window title</span>
+                    </div>
+                </div>
+                
+                <!-- Function Group -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-purple-400">Rendering</h3>
+                    <div class="code-block rounded-lg p-4 mb-4">
+                        <span class="lua-function">fill(r, g, b)</span> <span class="lua-comment">-- Clear screen with color</span><br>
+                        <span class="lua-function">loadTexture(path)</span> <span class="lua-comment">-- Load texture from file</span><br>
+                        <span class="lua-function">beginDraw(mode)</span> <span class="lua-comment">-- Start primitive drawing</span><br>
+                        <span class="lua-function">vertex(x, y, z)</span> <span class="lua-comment">-- Add vertex</span><br>
+                        <span class="lua-function">color(r, g, b)</span> <span class="lua-comment">-- Set vertex color</span><br>
+                        <span class="lua-function">texCoord(u, v)</span> <span class="lua-comment">-- Set texture coordinates</span><br>
+                        <span class="lua-function">endDraw()</span> <span class="lua-comment">-- Finish drawing</span>
+                    </div>
+                </div>
+                
+                <!-- Function Group -->
+                <div>
+                    <h3 class="text-xl font-semibold mb-4 text-purple-400">Input</h3>
+                    <div class="code-block rounded-lg p-4">
+                        <span class="lua-function">btn(key)</span> <span class="lua-comment">-- Check if key is pressed</span><br>
+                        <span class="lua-function">btnp(key)</span> <span class="lua-comment">-- Check if key was just pressed</span><br>
+                        <span class="lua-comment">-- Key constants: K_SPACE, K_UP, K_DOWN, etc.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 py-8 mt-16 border-t border-gray-700">
+        <div class="container mx-auto px-4 text-center text-gray-500">
+            <p>GBox Engine &copy; 2023 | Powered by C++, OpenGL, SDL3 and Lua</p>
+        </div>
+    </footer>
+
+    <script>
+//         document.querySelectorAll('pre').forEach(pre => {
+//     pre.innerHTML = pre.innerHTML
+//         .replace(/\b(function|end|local|if|then|else)\b/g, '<span class="lua-keyword">$&</span>')
+//         .replace(/\b(g_init|g_loop|loadTexture|title|fill|useTexture|beginDraw|color|vertex|texCoord|endDraw|btn|camera|math\.\w+)\b/g, '<span class="lua-function">$&</span>')
+//         .replace(/"([^"]*)"/g, '<span class="lua-string">"$1"</span>')
+//         .replace(/\b(\d+\.?\d*)\b/g, '<span class="lua-number">$1</span>')
+//         .replace(/--.*$/gm, '<span class="lua-comment">$&</span>');
+// });
+    </script>
+</body>
+</html>

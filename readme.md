@@ -4,7 +4,7 @@ a nice game engine in c#
 Yo guys... we are here to make a the best games
 hope to use this engine as a nice tool for yourself 
 
-![icon for gamebox](./gbox.png)
+<img src="./gbox.png" width="200">
 ![screen shot for gamebox](./ss.png)
 
 ## Documention
@@ -19,7 +19,7 @@ if you are using windows
 - then endit the build.bat file 
 - set `SDL` `LUA` `GLEW` paths that you have on your system
 - run `build.bat` file
-<p></p>
+
 if you are suing linux
 ----------------------
 - install sdl2 lua and glew

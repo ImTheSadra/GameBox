@@ -38,7 +38,6 @@ public:
     static int setCam(lua_State* L);
 private:
     static void handleError(int line, string file);
-    // static Uint8* keyState;
     bool running = true;
     Source source;
     static float CamX, CamY, CamZ, TarX, TarY, TarZ;

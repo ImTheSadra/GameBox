@@ -1,6 +1,6 @@
 #include "Core/Engine.h"
 
-#define __G_VERSION__ 1
+#define __G_VERSION__ 1.4
 #define __G_NAME__ "GameBox"
 
 void run(char* filepath){
@@ -24,13 +24,64 @@ int WINAPI WinMain(
     LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
     
     if (argc < 2) {
-        MessageBoxA(NULL, "Usage: GameBoxEngine <script.lua>", "Error", MB_ICONERROR);
+        MException err = MException(__LINE__, __FILE__, 
+            "Usage: gbox <script.lua> [other options]\n"
+            "Options:\n"
+            "  -d, --debug   Enable debug mode\n"
+            "  -h, --help    Show this help message");
+        err.ShowMessageBox();
+        LocalFree(argvW);
         return 1;
     }
 
-    int size = WideCharToMultiByte(CP_UTF8, 0, argvW[1], -1, NULL, 0, NULL, NULL);
-    char* filepath = new char[size];
-    WideCharToMultiByte(CP_UTF8, 0, argvW[1], -1, filepath, size, NULL, NULL);
+    for (int i = 1; i < argc; i++) {
+        int size = WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, NULL, 0, NULL, NULL);
+        char* arg = new char[size];
+        WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, arg, size, NULL, NULL);
+        
+        if (strcmp(arg, "-d") == 0 || strcmp(arg, "--debug") == 0) {
+            #define DEBUG
+            delete[] arg;
+            continue;
+        }
+        
+        if (strcmp(arg, "-h") == 0 || strcmp(arg, "--help") == 0) {
+            MException help = MException(__LINE__, __FILE__, 
+                "GameBox Engine v1\n"
+                "Usage: gbox <script.lua> [options]\n\n"
+                "Options:\n"
+                "  -d, --debug   Enable debug mode\n"
+                "  -h, --help    Show this help message");
+            help.ShowMessageBox();
+            delete[] arg;
+            LocalFree(argvW);
+            return 0;
+        }
+        
+        delete[] arg;
+    }
+
+    char* filepath = nullptr;
+    for (int i = 1; i < argc; i++) {
+        int size = WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, NULL, 0, NULL, NULL);
+        char* arg = new char[size];
+        WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, arg, size, NULL, NULL);
+        
+        if (arg[0] != '-') {
+            filepath = new char[size];
+            strcpy(filepath, arg);
+            delete[] arg;
+            break;
+        }
+        delete[] arg;
+    }
+
+    if (!filepath) {
+        MException err = MException(__LINE__, __FILE__, "No script file specified");
+        err.ShowMessageBox();
+        LocalFree(argvW);
+        return 1;
+    }
 
     run(filepath);
     
@@ -43,7 +94,7 @@ int WINAPI WinMain(
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        printf("Usage: %s <script.lua>\n", argv[0]);
+        printf("Usage: %s <script.lua> \n", argv[0]);
         return 1;
     }
     

@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameBox Engine | Powerful HTML5 Game Development</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="./favicon.png" type="image/png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+        
+        .code-block {
+            background: #1e1e2e;
+            border-left: 4px solid #7e3af2;
+        }
+        
+        .lua-keyword { color: #c678dd; }
+        .lua-function { color: #61afef; }
+        .lua-number { color: #d19a66; }
+        .lua-string { color: #98c379; }
+        .lua-comment { color: #5c6370; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                    },
+                    fontFamily: {
+                        'display': ['"Press Start 2P"', 'cursive'],
+                        'body': ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap');
+
+        .gradient-text {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .code-block {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+        }
+
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .sidebar-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid #6366f1;
+        }
+
+        .sidebar-link.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 4px solid #6366f1;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-light font-body antialiased flex">
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 h-screen bg-slate-800 sticky top-0 overflow-y-auto hidden md:block">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold gradient-text">GameBox</h1>
+            <p class="text-slate-400 text-sm mt-1 version">v1.3.0</p>
+        </div>
+
+        <nav class="mt-6">
+            <div class="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Getting Started</div>
+            <a href="#introduction"
+                class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition active">Introduction</a>
+            <a href="#installation"
+                class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Installation</a>
+            <a href="#quickstart" class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Quick
+                Start</a>
+
+            <!-- <div class="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6">Core Concepts
+            </div>
+            <a href="#game-loop" class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Game
+                Loop</a>
+            <a href="#entities" class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Entities
+                & Components</a>
+            <a href="#physics" class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Physics
+                Engine</a>
+            <a href="#rendering"
+                class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Rendering</a>
+
+            <div class="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mt-6">Advanced</div>
+            <a href="#particles"
+                class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Particle Systems</a>
+            <a href="#audio" class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Audio
+                Management</a>
+            <a href="#ai" class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">AI Systems</a> -->
+        </nav>
+
+        <div class="px-6 py-6 mt-6 border-t border-slate-700">
+            <!-- <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 rounded-full bg-green-400 animate-pulse"></div>
+                <span class="text-sm text-slate-300">API Server Online</span>
+            </div> -->
+            <a href="https://github.com/ImTheSadra/GameBox">
+                <button
+                    class="mt-4 w-full bg-primary hover:bg-indigo-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center space-x-2">
+                    <i class="fab fa-github"></i>
+                    <span>GitHub Repo</span>
+                </button>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Mobile Header -->
+    <header
+        class="md:hidden bg-slate-800 w-full fixed top-0 z-50 py-4 px-6 flex justify-between items-center border-b border-slate-700">
+        <h1 class="text-xl font-bold gradient-text">GameBox</h1>
+        <button id="mobile-menu-button" class="text-slate-300 hover:text-white">
+            <i class="fas fa-bars text-2xl"></i>
+        </button>
+    </header>
+
+    <!-- Mobile Sidebar -->
+    <div id="mobile-sidebar" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden md:hidden">
+        <div class="w-4/5 h-full bg-slate-800 overflow-y-auto">
+            <div class="p-6 flex justify-between items-center border-b border-slate-700">
+                <h1 class="text-xl font-bold gradient-text">GameBox</h1>
+                <button id="close-mobile-menu" class="text-slate-300 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <nav class="mt-4">
+                <a href="#introduction"
+                    class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Introduction</a>
+                <a href="#installation"
+                    class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Installation</a>
+                <a href="#quickstart"
+                    class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Quick Start</a>
+                <!-- <a href="#game-loop"
+                    class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Game Loop</a> -->
+                <!-- <a href="#entities"
+                    class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Entities</a>
+                <a href="#physics"
+                    class="sidebar-link block px-6 py-3 text-slate-300 hover:text-white transition">Physics</a> -->
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 mt-16 md:mt-0">
+        <!-- Hero Section -->
+        <section class="hero-pattern py-20 px-6 md:px-12 lg:px-24 border-b border-slate-700">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col md:flex-row items-center">
+                    <div class="md:w-1/2 mb-12 md:mb-0">
+                        <span
+                            class="inline-block px-3 py-1 bg-slate-700 rounded-full text-sm font-medium text-primary mb-4 version" >v2.4.0</span>
+                        <h1 class="text-4xl md:text-6xl font-bold mb-6 font-display gradient-text">GameBox Engine</h1>
+                        <p class="text-xl text-slate-300 mb-8">The ultimate lua game development framework for modern
+                            desktop experiences. Build stunning games with ease.</p>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                            <a href="#quickstart"
+                                class="bg-primary hover:bg-indigo-500 text-white py-3 px-6 rounded-lg transition text-center font-medium">Get
+                                Started</a>
+                            <!-- <a href="#"
+                                class="bg-slate-700 hover:bg-slate-600 text-white py-3 px-6 rounded-lg transition text-center font-medium flex items-center justify-center space-x-2">
+                                <i class="fas fa-play"></i>
+                                <span>View Demos</span>
+                            </a> -->
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 flex justify-center">
+                        <div class="relative w-full max-w-md">
+                            <div
+                                class="absolute -top-10 -left-10 w-32 h-32 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow">
+                            </div>
+                            <div
+                                class="absolute -bottom-10 -right-10 w-32 h-32 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse-slow animation-delay-2000">
+                            </div>
+                            <div
+                                class="relative bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl">
+                                <div class="bg-slate-900 px-4 py-3 border-b border-slate-700 flex space-x-2">
+                                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                                </div>
+                                <div class="p-4 code-block">
+<pre class="text-sm text-green-400 font-mono overflow-y-auto max-h-80"><span class="lua-keyword">local</span> texture = <span class="lua-number">0</span>
+<span class="lua-keyword">local</span> angle = <span class="lua-number">0</span>
+
+<span class="lua-keyword">function</span> <span class="lua-function">g_init</span>()
+    texture = <span class="lua-function">loadTexture</span>(<span class="lua-string">"gbox.png"</span>)
+    <span class="lua-function">title</span>(<span class="lua-string">"GBox Demo"</span>)
+<span class="lua-keyword">end</span>
+
+<span class="lua-keyword">function</span> <span class="lua-function">g_loop</span>()
+    <span class="lua-function">fill</span>(<span class="lua-number">1</span>, <span class="lua-number">0.8</span>, <span class="lua-number">1</span>)
+    
+    <span class="lua-function">useTexture</span>(texture)
+    
+    <span class="lua-function">beginDraw</span>(DRAW_QUADS)
+        <span class="lua-function">color</span>(<span class="lua-number">0.7</span>, <span class="lua-number">0.0</span>, <span class="lua-number">0.8</span>)
+        <span class="lua-function">vertex</span>(<span class="lua-number">0.5</span>, -<span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">0</span>, <span class="lua-number">0</span>)
+
+        <span class="lua-function">vertex</span>(<span class="lua-number">0.5</span>, <span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">1</span>, <span class="lua-number">0</span>)
+
+        <span class="lua-function">color</span>(<span class="lua-number">0.0</span>, <span class="lua-number">0.0</span>, <span class="lua-number">0.8</span>)
+        <span class="lua-function">vertex</span>(-<span class="lua-number">0.5</span>, <span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">1</span>, <span class="lua-number">1</span>)
+
+        <span class="lua-function">vertex</span>(-<span class="lua-number">0.5</span>, -<span class="lua-number">0.5</span>, <span class="lua-number">0.0</span>)
+        <span class="lua-function">texCoord</span>(<span class="lua-number">0</span>, <span class="lua-number">1</span>)
+    <span class="lua-function">endDraw</span>()
+
+    <span class="lua-keyword">if</span> <span class="lua-function">btn</span>(K_SPACE) <span class="lua-keyword">then</span>
+        angle = angle+<span class="lua-number">0.01</span>
+        <span class="lua-function">camera</span>(
+            math.sin(angle)*<span class="lua-number">4</span>, <span class="lua-number">0</span>, math.cos(angle)*<span class="lua-number">4</span>,
+            <span class="lua-number">0</span>,<span class="lua-number">0</span>,<span class="lua-number">0</span>
+        )
+    <span class="lua-keyword">end</span>
+<span class="lua-keyword">end</span></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="introduction" class="py-16 px-6 md:px-12 lg:px-24 border-b border-slate-700">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-12">
+                    <div class="w-12 h-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-play text-primary text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">Introduction</h2>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-slate-200">What is GBox?</h3>
+                        <p class="text-slate-400 mb-6">GBox is a lightweight, high-performance game engine built with C++, OpenGL, and SDL3, designed for developers who want to create games with Lua scripting. With its immediate-mode rendering style and simple API, GBox makes 2D/3D game development accessible while providing low-level control for advanced users.</p>
+                    
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 mb-6">
+                            <div class="flex items-start">
+                                <div class="text-primary mr-3 mt-1">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-200 mb-2">Why Choose GBox?</h4>
+                                    <p class="text-slate-400">GBox offers a unique combination of C++ performance with Lua's flexibility. Unlike heavier engines, GBox provides a minimal abstraction layer that gives you direct control over rendering while handling the complex backend work.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-slate-200">Key Features</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="text-primary mr-3 mt-1">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-200">High Performance</h4>
+                                    <p class="text-slate-400">Optimized rendering pipeline and efficient memory
+                                        management for buttery smooth gameplay.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary mr-3 mt-1">
+                                    <i class="fas fa-puzzle-piece"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-200">Component System</h4>
+                                    <p class="text-slate-400">Flexible ECS architecture that makes your game code
+                                        modular and maintainable.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="text-primary mr-3 mt-1">
+                                    <i class="fas fa-sliders-h"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-200">Built-in Physics</h4>
+                                    <p class="text-slate-400">Powerful physics engine with collision detection, rigid
+                                        bodies, and force management.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation Section -->
+        <!-- <section id="installation" class="py-16 px-6 md:px-12 lg:px-24 border-b border-slate-700 bg-slate-800 bg-opacity-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-12">
+                    <div class="w-12 h-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-download text-primary text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">Installation</h2>
+                </div>
+        
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-slate-200">Windows Installation</h3>
+                        <p class="text-slate-400 mb-6">Download and install the GBox engine for Windows:</p>
+        
+                        <div class="code-block rounded-xl p-6 mb-6">
+                            <pre class="text-sm text-green-400 font-mono overflow-x-auto">
+1. Download <a href="https://github.com/ImTheSadra/GameBox/releases/download/v1.2/win32.zip"><span class="text-yellow-300">GBox-Win32.zip</span></a>
+2. Run the installer
+3. Add to system PATH during installation
+4. Verify installation:</pre>
+                        </div>
+        
+                        <div class="code-block rounded-xl p-6 mt-4">
+                            <pre class="text-sm text-green-400 font-mono overflow-x-auto">
+<span class="text-purple-300">gbox</span> --version</pre>
+                        </div>
+                    </div>
+        
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-slate-200">Linux Installation</h3>
+                        <p class="text-slate-400 mb-6">Install GBox on Linux systems:</p>
+        
+                        <div class="code-block rounded-xl p-6">
+                            <pre class="text-sm text-green-400 font-mono overflow-x-auto">
+<span class="text-gray-500"># Download and install</span>
+wget https://github.com/ImTheSadra/GameBox/releases/download/v1.2/linux.zip
+tar -xzf linux.zip
+sudo mv GameBox /usr/local/bin/
+
+<span class="text-gray-500"># Verify installation</span>
+gbox --version</pre>
+                        </div>
+        
+                        <div class="mt-6 bg-slate-800 rounded-xl p-4 border border-slate-700">
+                            <div class="flex items-start">
+                                <div class="text-primary mr-3 mt-1">
+                                    <i class="fas fa-terminal"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-slate-200 mb-2">Adding to PATH Manually</h4>
+                                    <p class="text-slate-400 text-sm">If you didn't use the installer, add GBox to your PATH:</p>
+                                    <pre class="text-xs text-green-400 mt-2">export PATH=$PATH:/path/to/gbox/directory</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="mt-12 bg-primary bg-opacity-10 border border-primary rounded-xl p-6">
+                    <div class="flex items-start">
+                        <div class="text-primary mr-3 mt-1">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-slate-200 mb-2">Creating Your First Project</h4>
+                            <p class="text-slate-400">After installation, create a new Lua file and run it with:</p>
+                            <pre class="text-sm text-green-400 font-mono mt-2">gbox my_game.lua</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+
+        <!-- Quick Start Section -->
+        <section id="installation" class="py-16 px-6 md:px-12 lg:px-24 border-b border-slate-700 bg-slate-800 bg-opacity-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-12">
+                    <div class="w-12 h-12 rounded-full bg-purple-500 bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-download text-purple-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-white">Install GBox Engine</h2>
+                </div>
+        
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Windows Installation -->
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center mb-4">
+                            <i class="fab fa-windows text-blue-400 text-2xl mr-3"></i>
+                            <h3 class="text-xl font-semibold text-white">Windows</h3>
+                        </div>
+                        
+                        <ol class="text-gray-300 space-y-3 list-decimal list-inside">
+                            <li>Download <code class="bg-gray-700 px-2 py-1 rounded">GBox-Windows-x64.exe</code></li>
+                            <li>Run the installer executable</li>
+                            <li>Check "Add to PATH" during installation</li>
+                            <li>Open Command Prompt and verify:
+                                <div class="code-block rounded-lg p-3 mt-2 bg-gray-900">
+                                    <pre class="text-sm text-green-400">gbox --version</pre>
+                                </div>
+                            </li>
+                        </ol>
+                        
+                        <a href="[WINDOWS_HERE]" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg text-white transition">
+                            <i class="fas fa-download mr-2"></i>
+                            Download for Windows
+                        </a>
+                    </div>
+        
+                    <!-- Linux Installation -->
+                    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+                        <div class="flex items-center mb-4">
+                            <i class="fab fa-linux text-orange-400 text-2xl mr-3"></i>
+                            <h3 class="text-xl font-semibold text-white">Linux</h3>
+                        </div>
+                        
+                        <div class="code-block rounded-lg p-4 bg-gray-900 mb-4">
+                            <pre class="text-sm text-green-400 max-w-full overflow-x-auto bg-gray-900 rounded-lg p-4" style="width: fit-content;">
+# Download and install
+wget [LINUX_HERE]
+tar -xzf linux.zip
+sudo mv gbox /usr/local/bin/
+
+# Verify installation
+gbox --version</pre>
+                        </div>
+                        
+                        <!-- <div class="text-sm text-gray-400">
+                            <p class="mb-2">For Debian/Ubuntu systems:</p>
+                            <div class="code-block rounded-lg p-3 bg-gray-900">
+                                <pre class="text-sm text-green-400">sudo apt install ./gbox.deb</pre>
+                            </div>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="quickstart" class="py-16 px-6 md:px-12 lg:px-24 border-b border-slate-700 bg-slate-800 bg-opacity-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-12">
+                    <div class="w-12 h-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">Quick Start Guide</h2>
+                </div>
+                <div class="mt-12 bg-gray-800 rounded-xl p-6 border border-gray-700">
+                    <!-- <h3 class="text-xl font-semibold text-white mb-4 flex items-center">
+                        <i class="fas fa-check-circle text-green-400 mr-3"></i>
+                        Quick Start Guide
+                    </h3> -->
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="text-lg font-medium text-purple-300 mb-2">1. Create a Lua script</h4>
+                            <div class="code-block rounded-lg p-4 bg-gray-900">
+                        <pre class="text-sm text-green-400">
+function g_init()
+    title("My GBox Game")
+end
+
+function g_loop()
+    fill(0.1, 0.1, 0.1)
+end</pre>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h4 class="text-lg font-medium text-purple-300 mb-2">2. Run your game</h4>
+                            <div class="code-block rounded-lg p-4 bg-gray-900">
+                                <pre class="text-sm text-green-400">gbox mygame.lua</pre>
+                            </div>
+                            
+                            <div class="mt-4 text-sm text-gray-400">
+                                <p>For debugging:</p>
+                                <div class="code-block rounded-lg p-3 bg-gray-900 mt-2">
+                                    <pre class="text-sm text-green-400">gbox -debug mygame.lua</pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Loop Section -->
+        <!-- <section id="game-loop"
+            class="py-16 px-6 md:px-12 lg:px-24 border-b border-slate-700 bg-slate-800 bg-opacity-50">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-12">
+                    <div class="w-12 h-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-sync-alt text-primary text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">Game Loop</h2>
+                </div>
+
+                <div class="mb-12">
+                    <h3 class="text-xl font-semibold mb-6 text-slate-200">Understanding the Game Loop</h3>
+                    <p class="text-slate-400 mb-6">The game loop is the heartbeat of your game. GameBox provides a
+                        robust loop that handles updates, physics, and rendering automatically, while giving you hooks
+                        to add your custom logic.</p>
+
+                    <div class="grid md:grid-cols-3 gap-6 mb-12">
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">Fixed Update</h4>
+                            <p class="text-slate-400">Runs at a consistent 60Hz for physics and game logic that needs
+                                precise timing.</p>
+                        </div>
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">Update</h4>
+                            <p class="text-slate-400">Runs as fast as possible for game logic that doesn't need fixed
+                                timing.</p>
+                        </div>
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">Render</h4>
+                            <p class="text-slate-400">Handles all rendering operations, synced with the browser's
+                                refresh rate.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-12">
+                    <h3 class="text-xl font-semibold mb-6 text-slate-200">Customizing the Loop</h3>
+                    <p class="text-slate-400 mb-6">You can hook into different parts of the game loop to add your own
+                        functionality:</p>
+
+                    <div class="code-block rounded-xl p-6 mb-6">
+                        <pre class="text-sm text-green-400 font-mono overflow-x-auto">
+<span class="text-gray-500">// Runs before the fixed update step</span>
+game.onPreFixedUpdate((dt) <span class="text-purple-300">=&gt;</span> {
+  <span class="text-gray-500">// Custom pre-physics logic</span>
+});
+
+<span class="text-gray-500">// Runs after the fixed update step</span>
+game.onPostFixedUpdate((dt) <span class="text-purple-300">=&gt;</span> {
+  <span class="text-gray-500">// Custom post-physics logic</span>
+});
+
+<span class="text-gray-500">// Runs every frame before rendering</span>
+game.onPreRender((ctx) <span class="text-purple-300">=&gt;</span> {
+  <span class="text-gray-500">// Custom rendering (e.g., background effects)</span>
+  ctx.fillStyle = <span class="text-yellow-300">'rgba(0, 0, 0, 0.2)'</span>;
+  ctx.fillRect(<span class="text-emerald-400">0</span>, <span class="text-emerald-400">0</span>, game.width, game.height);
+});
+
+<span class="text-gray-500">// Runs every frame after rendering</span>
+game.onPostRender((ctx) <span class="text-purple-300">=&gt;</span> {
+  <span class="text-gray-500">// Custom UI rendering</span>
+  ctx.fillStyle = <span class="text-yellow-300">'white'</span>;
+  ctx.font = <span class="text-yellow-300">'24px Arial'</span>;
+  ctx.fillText(<span class="text-yellow-300">`FPS: </span><span class="text-purple-300">${</span>game.stats.fps<span class="text-purple-300">}</span><span class="text-yellow-300">`</span>, <span class="text-emerald-400">20</span>, <span class="text-emerald-400">30</span>);
+});</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="entities" class="py-16 px-6 md:px-12 lg:px-24 border-b border-slate-700">
+            <div class="max-w-6xl mx-auto">
+                <div class="flex items-center mb-12">
+                    <div class="w-12 h-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-cubes text-primary text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">Entities & Components</h2>
+                </div>
+
+                <div class="mb-12">
+                    <h3 class="text-xl font-semibold mb-6 text-slate-200">Entity-Component System</h3>
+                    <p class="text-slate-400 mb-6">GameBox uses an Entity-Component System (ECS) architecture, which
+                        promotes composition over inheritance. This makes your game code more flexible and maintainable.
+                    </p>
+
+                    <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 mb-12">
+                        <div class="flex items-start">
+                            <div class="text-primary mr-3 mt-1">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-slate-200 mb-2">ECS Explained</h4>
+                                <p class="text-slate-400">Entities are simple containers for components. Components are
+                                    reusable modules that add specific functionality (like rendering, physics, etc.).
+                                    Systems (managed internally by GameBox) process entities with specific component
+                                    combinations.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-6 text-slate-200">Creating Entities</h3>
+                        <p class="text-slate-400 mb-6">Entities can be created with optional names and tags for easy
+                            identification:</p>
+
+                        <div class="code-block rounded-xl p-6 mb-6">
+                            <pre class="text-sm text-green-400 font-mono overflow-x-auto">
+<span class="text-purple-300">const</span> enemy = <span class="text-purple-300">new</span> <span class="text-blue-300">Entity</span>(<span class="text-yellow-300">'bossEnemy'</span>, [<span class="text-yellow-300">'enemy'</span>, <span class="text-yellow-300">'boss'</span>]);
+
+<span class="text-gray-500">// Add to game world</span>
+game.addEntity(enemy);
+
+<span class="text-gray-500">// Find entities by name or tag</span>
+<span class="text-purple-300">const</span> enemies = game.findEntitiesByTag(<span class="text-yellow-300">'enemy'</span>);
+<span class="text-purple-300">const</span> boss = game.findEntityByName(<span class="text-yellow-300">'bossEnemy'</span>);</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section> -->
+        <footer class="bg-gray-800 py-8 mt-16 border-t border-gray-700">
+            <div class="container mx-auto px-4 text-center text-gray-500">
+                <p>GBox Engine &copy; 2023 | Powered by C++, OpenGL, SDL3 and Lua</p>
+            </div>
+        </footer>
+    </main>
+    <script>
+        let version, windows, linux;
+
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("test");
+
+    const req = new XMLHttpRequest();
+    req.open("GET", "./version.txt");
+    
+    req.onload = () => {
+        if (req.status === 200) {
+            let result = req.response.split("\n");
+            version = result[0]?.trim();
+            windows = result[1]?.trim();
+            linux   = result[2]?.trim();
+
+            console.log("test2");
+
+            // Replace placeholders in innerHTML
+            let all = document.body.innerHTML;
+            all = all.replaceAll("[LINUX_HERE]", linux);
+            all = all.replaceAll("[WINDOWS_HERE]", windows);
+            document.body.innerHTML = all;
+
+            // Set version text
+            for (let v of document.querySelectorAll(".version")) {
+                v.textContent = version;
+            }
+        } else {
+            console.error("Failed to load version.txt", req.status);
+        }
+    };
+
+    req.onerror = () => {
+        console.error("Network error while fetching version.txt");
+    };
+
+    req.send();
+});
+
+    </script>
+</body>
+</html>

@@ -132,14 +132,16 @@ void Engine::updateView() {
 }
 
 void Engine::run(){
-    SDL_Event e;
+    SDL_Event event;
+    int e,s;
     while(running){
-        while(SDL_PollEvent(&e)){
-            if(e.type == SDL_EVENT_QUIT){running = false;}
-            if(e.type == SDL_EVENT_KEY_DOWN || e.type == SDL_EVENT_KEY_UP){
+        s = SDL_GetTicks();
+        while(SDL_PollEvent(&event)){
+            if(event.type == SDL_EVENT_QUIT){running = false;}
+            if(event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP){
                 keyState = (Uint8*)SDL_GetKeyboardState(NULL);
             }
-            if(e.type == SDL_EVENT_WINDOW_RESIZED){
+            if(event.type == SDL_EVENT_WINDOW_RESIZED){
                 int w,h;
                 SDL_GetWindowSize(window, &w, &h);
                 glViewport(0,0,w,h);
@@ -152,8 +154,11 @@ void Engine::run(){
         }
         updateView();
         source.callFunc("g_loop");
-        
+        handleError(__LINE__, __FILE__);
+
         SDL_GL_SwapWindow(window);
+        e = SDL_GetTicks();
+        SDL_Delay((e-s)/2);
     }
 }
 
@@ -178,7 +183,6 @@ int Engine::color(lua_State* L){
         if (r < 0){r = 0;}
         if (g < 0){g = 0;}
         if (b < 0){b = 0;}
-        // SDL_SetRenderDrawColor(renderer, r, g, b, 255);
         glColor3f(r,g,b);
 
         handleError(__LINE__, __FILE__);
@@ -200,6 +204,11 @@ int Engine::fill(lua_State* L){
     }
 
     try{
+        if (!ctx){
+            lua_pushstring(L, "OpenGL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         float r = luaL_checknumber(L, 1);
         float g = luaL_checknumber(L, 2); 
         float b = luaL_checknumber(L, 3); 
@@ -227,6 +236,11 @@ int Engine::btn(lua_State* L) {
     }
 
     try {
+        if (!window){
+            lua_pushstring(L, "SDL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         int key = luaL_checkinteger(L, 1);
         SDL_Keycode keycode = static_cast<SDL_Keycode>(key);
         SDL_Keymod keymod = SDL_GetModState();
@@ -296,6 +310,7 @@ int Engine::beginDraw(lua_State* L){
         double MODE = luaL_checknumber(L, 1);
 
         glBegin(MODE);
+        handleError(__LINE__, __FILE__);
     }
     catch (exception error) {
         auto e = MException(__LINE__, __FILE__, error.what());
@@ -315,6 +330,7 @@ int Engine::endDraw(lua_State* L){
         }
 
         glEnd();
+        handleError(__LINE__, __FILE__);
     }
     catch (exception error) {
         auto e = MException(__LINE__, __FILE__, error.what());
@@ -333,12 +349,18 @@ int Engine::rotate(lua_State* L){
     }
 
     try{
+        if (!ctx){
+            lua_pushstring(L, "OpenGL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         float z = luaL_checknumber(L, 3);
         float angle = luaL_checknumber(L, 4);
 
         glRotatef(angle, x, y, z);
+        handleError(__LINE__, __FILE__);
     } catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -355,11 +377,16 @@ int Engine::loadTexture(lua_State* L){
     }
     
     try {
+        if (!ctx){
+            lua_pushstring(L, "OpenGL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         const char* path = luaL_checkstring(L, 1);
         int id = assets.load(path);
         
         lua_pushinteger(L, id);
-        
+        handleError(__LINE__, __FILE__);
         return 1;
     } 
     catch(exception& error) {
@@ -380,6 +407,11 @@ int Engine::useTexture(lua_State* L){
     }
 
     try{
+        if (!ctx){
+            lua_pushstring(L, "OpenGL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         int id = luaL_checkinteger(L, 1);
         GLuint texture = assets.get(id);
 
@@ -390,6 +422,7 @@ int Engine::useTexture(lua_State* L){
         }
 
         glBindTexture(GL_TEXTURE_2D, texture);
+        handleError(__LINE__, __FILE__);
     } catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -407,9 +440,15 @@ int Engine::texCoord(lua_State* L){
     }
 
     try{
+        if (!ctx){
+            lua_pushstring(L, "OpenGL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         glTexCoord2f(x,y);
+        handleError(__LINE__, __FILE__);
     } catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -426,6 +465,11 @@ int Engine::mouseBtn(lua_State* L){
         return 0;
     }
     try{
+        if (!window){
+            lua_pushstring(L, "SDL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         int button = luaL_checkinteger(L, 1);
         
         Uint32 mouseState = SDL_GetMouseState(NULL, NULL);
@@ -457,6 +501,11 @@ int Engine::mouseBtn(lua_State* L){
 
 int Engine::mousePos(lua_State* L) {
     try {
+        if (!window){
+            lua_pushstring(L, "SDL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         float x, y;
         SDL_GetMouseState(&x,&y);
 
@@ -480,6 +529,11 @@ int Engine::title(lua_State* L){
         return 0;
     }
     try{
+        if (!ctx){
+            lua_pushstring(L, "SDL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         string title = luaL_checkstring(L, 1);
         SDL_SetWindowTitle(window, title.c_str());
         return 0; 
@@ -501,11 +555,17 @@ int Engine::translate(lua_State* L){
     }
 
     try{
+        if (!ctx){
+            lua_pushstring(L, "OpenGL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         float z = luaL_checknumber(L, 3);
 
         glTranslatef(x,y,z);
+        handleError(__LINE__, __FILE__);
     }catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -522,6 +582,11 @@ int Engine::setCam(lua_State* L){
     }
 
     try{
+        if (!ctx){
+            lua_pushstring(L, "OpenGL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         float z = luaL_checknumber(L, 3);
@@ -547,6 +612,11 @@ int Engine::mouseSetPos(lua_State* L){
     }
 
     try{
+        if (!window){
+            lua_pushstring(L, "SDL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         double x = luaL_checknumber(L, 1);
         double y = luaL_checknumber(L, 2);
         SDL_WarpMouseInWindow(window, x, y);
@@ -566,6 +636,11 @@ int Engine::mouseVisible(lua_State* L){
     }
 
     try{
+        if (!ctx){
+            lua_pushstring(L, "SDL is not initilized yet.");
+            lua_error(L); 
+            return 0;
+        }
         bool isv = luaL_checkinteger(L, 1);
         int result = SDL_SetWindowRelativeMouseMode(window, isv);
 
