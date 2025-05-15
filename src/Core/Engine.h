@@ -6,6 +6,8 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <SDL3/SDL_opengl.h>
+
 ;
 static Uint8* keyState;
 
@@ -16,7 +18,7 @@ class Engine{
 public:
     Engine();
     ~Engine();
-    void init(const char* path);
+    void init(const char* path, bool debug);
     void run();
 
     static int fill(lua_State* L);
@@ -34,10 +36,10 @@ public:
     static int mouseSetPos(lua_State* L);
     static int mouseVisible(lua_State* L);
     static int title(lua_State* L);
-    static int translate(lua_State* L);
     static int setCam(lua_State* L);
 private:
     static void handleError(int line, string file);
+    static void handleLuaError(lua_State* state);
     bool running = true;
     Source source;
     static float CamX, CamY, CamZ, TarX, TarY, TarZ;

@@ -3,9 +3,9 @@
 #define __G_VERSION__ 1.4
 #define __G_NAME__ "GameBox"
 
-void run(char* filepath){
+void run(char* filepath, bool debug){
     Engine engine = Engine();
-    engine.init(filepath);
+    engine.init(filepath, debug);
     engine.run();
 }
 
@@ -22,6 +22,8 @@ int WINAPI WinMain(
 ) {
     int argc;
     LPWSTR* argvW = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+    bool debug = false;
     
     if (argc < 2) {
         MException err = MException(__LINE__, __FILE__, 
@@ -40,8 +42,9 @@ int WINAPI WinMain(
         WideCharToMultiByte(CP_UTF8, 0, argvW[i], -1, arg, size, NULL, NULL);
         
         if (strcmp(arg, "-d") == 0 || strcmp(arg, "--debug") == 0) {
-            #define DEBUG
+            debug = true;
             delete[] arg;
+            cout << "debugging mode is on" << endl;
             continue;
         }
         
@@ -83,7 +86,7 @@ int WINAPI WinMain(
         return 1;
     }
 
-    run(filepath);
+    run(filepath, debug);
     
     delete[] filepath;
     LocalFree(argvW);
@@ -98,7 +101,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     
-    run(argv[1]);
+    run(argv[1], true);
     return 0;
 }
 

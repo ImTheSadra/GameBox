@@ -7,7 +7,11 @@
     <title>GameBox Engine | Powerful HTML5 Game Development</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="shortcut icon" href="./favicon.png" type="image/png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-lua.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
         
@@ -477,14 +481,14 @@ gbox --version</pre>
                         <div>
                             <h4 class="text-lg font-medium text-purple-300 mb-2">1. Create a Lua script</h4>
                             <div class="code-block rounded-lg p-4 bg-gray-900">
-                        <pre class="text-sm text-green-400">
+                        <pre class="text-sm text-green-400 line-numbers language-lua"><code class="w-full" style="margin-left: 0px;">
 function g_init()
     title("My GBox Game")
 end
 
 function g_loop()
     fill(0.1, 0.1, 0.1)
-end</pre>
+end</code></pre>
                             </div>
                         </div>
                         
@@ -507,7 +511,7 @@ end</pre>
         </section>
 
         <!-- Game Loop Section -->
-        <!-- <section id="game-loop"
+        <section id="game-loop"
             class="py-16 px-6 md:px-12 lg:px-24 border-b border-slate-700 bg-slate-800 bg-opacity-50">
             <div class="max-w-6xl mx-auto">
                 <div class="flex items-center mb-12">
@@ -524,29 +528,42 @@ end</pre>
                         to add your custom logic.</p>
 
                     <div class="grid md:grid-cols-3 gap-6 mb-12">
-                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                        <!-- <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <div class="text-primary text-2xl mb-3">
                                 <i class="fas fa-tachometer-alt"></i>
                             </div>
                             <h4 class="font-semibold text-slate-200 mb-2">Fixed Update</h4>
                             <p class="text-slate-400">Runs at a consistent 60Hz for physics and game logic that needs
                                 precise timing.</p>
-                        </div>
+                        </div> -->
                         <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <div class="text-primary text-2xl mb-3">
                                 <i class="fas fa-gamepad"></i>
                             </div>
-                            <h4 class="font-semibold text-slate-200 mb-2">Update</h4>
-                            <p class="text-slate-400">Runs as fast as possible for game logic that doesn't need fixed
-                                timing.</p>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_loop</h4>
+                            <p class="text-slate-400">runs in each frame</p>
                         </div>
                         <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <div class="text-primary text-2xl mb-3">
                                 <i class="fas fa-paint-brush"></i>
                             </div>
-                            <h4 class="font-semibold text-slate-200 mb-2">Render</h4>
-                            <p class="text-slate-400">Handles all rendering operations, synced with the browser's
-                                refresh rate.</p>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_wResize</h4>
+                            <p class="text-slate-400">it will be called when window is resized</p>
+                        </div>
+
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_keydown</h4>
+                            <p class="text-slate-400">it will be called when a key is pressed</p>
+                        </div>
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_keyup</h4>
+                            <p class="text-slate-400">it will be called when a key is released</p>
                         </div>
                     </div>
                 </div>
@@ -557,31 +574,26 @@ end</pre>
                         functionality:</p>
 
                     <div class="code-block rounded-xl p-6 mb-6">
-                        <pre class="text-sm text-green-400 font-mono overflow-x-auto">
-<span class="text-gray-500">// Runs before the fixed update step</span>
-game.onPreFixedUpdate((dt) <span class="text-purple-300">=&gt;</span> {
-  <span class="text-gray-500">// Custom pre-physics logic</span>
-});
+                        <pre class="text-sm text-green-400 font-mono overflow-x-auto"><code class="language-lua">
+function g_loop()
+    --it will used in each frame rendering
+end
 
-<span class="text-gray-500">// Runs after the fixed update step</span>
-game.onPostFixedUpdate((dt) <span class="text-purple-300">=&gt;</span> {
-  <span class="text-gray-500">// Custom post-physics logic</span>
-});
+function g_wResize(w,h)
+    fill(0.5,0.5,0.5)
+end
 
-<span class="text-gray-500">// Runs every frame before rendering</span>
-game.onPreRender((ctx) <span class="text-purple-300">=&gt;</span> {
-  <span class="text-gray-500">// Custom rendering (e.g., background effects)</span>
-  ctx.fillStyle = <span class="text-yellow-300">'rgba(0, 0, 0, 0.2)'</span>;
-  ctx.fillRect(<span class="text-emerald-400">0</span>, <span class="text-emerald-400">0</span>, game.width, game.height);
-});
+function g_keydown(key)
+    if key == K_W then
+        print(key, "is K_W")
+    else 
+        print(key," is pressed")
+    end
+end
 
-<span class="text-gray-500">// Runs every frame after rendering</span>
-game.onPostRender((ctx) <span class="text-purple-300">=&gt;</span> {
-  <span class="text-gray-500">// Custom UI rendering</span>
-  ctx.fillStyle = <span class="text-yellow-300">'white'</span>;
-  ctx.font = <span class="text-yellow-300">'24px Arial'</span>;
-  ctx.fillText(<span class="text-yellow-300">`FPS: </span><span class="text-purple-300">${</span>game.stats.fps<span class="text-purple-300">}</span><span class="text-yellow-300">`</span>, <span class="text-emerald-400">20</span>, <span class="text-emerald-400">30</span>);
-});</pre>
+function g_keyup(key)
+    print(key," is released")
+end</code></pre>
                     </div>
                 </div>
             </div>
@@ -638,7 +650,7 @@ game.addEntity(enemy);
                     </div>
                 </div>
             </div>
-        </section> -->
+        </section>
         <footer class="bg-gray-800 py-8 mt-16 border-t border-gray-700">
             <div class="container mx-auto px-4 text-center text-gray-500">
                 <p>GBox Engine &copy; 2023 | Powered by C++, OpenGL, SDL3 and Lua</p>
@@ -685,6 +697,14 @@ document.addEventListener("DOMContentLoaded", () => {
     req.send();
 });
 
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/copy-to-clipboard/prism-copy-to-clipboard.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Prism.highlightAll();
+            
+            setTimeout(() => Prism.highlightAll(), 500);
+        });
     </script>
 </body>
 </html>

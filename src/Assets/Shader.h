@@ -1,50 +1,57 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <GL/gl.h>
 #include <string>
+#include <fstream>
 #include <sstream>
 #include <iostream>
+#include <memory>
 #include "../MException.hpp"
 
-using namespace std;
-
-class Shader{
+class Shader {
 public:
-    Shader();
+    void init();
+    Shader(){}
     ~Shader();
+
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
+
     void use() const;
-    void set(const char* vx, const char* fg);
+    void compile(const char* vertexSource, const char* fragmentSource);
     bool loadFromFile(const std::string& vertexPath, const std::string& fragmentPath);
-    GLuint getProgramID() const;
-    GLuint compileShader(GLenum type, const char* source);
+    GLuint getProgramID() const { return program_; }
+
+    void setBool(const std::string &name, bool value) const;
+    void setInt(const std::string &name, int value) const;
+    void setFloat(const std::string &name, float value) const;
+    void setMat4(const std::string &name, const GLfloat* value) const;
+    void setVec3(const std::string &name, const GLfloat* value) const;
 
 private:
-    const char* defaultVX = 
-        "#version 120\n"
-        "attribute vec3 position;\n"
-        "attribute vec3 color;\n"
-        "varying vec3 vColor;\n"
+    static constexpr const char* DEFAULT_VERTEX_SHADER =
+        "#version 330 core\n"
+        "layout (location = 0) in vec3 position;\n"
+        "layout (location = 1) in vec3 color;\n"
+        "out vec3 vColor;\n"
         "uniform mat4 MVP;\n"
-        
         "void main() {\n"
-            "vColor = color;\n"
-            "gl_Position = MVP * vec4(position, 1.0);\n"
+        "    vColor = color;\n"
+        "    gl_Position = MVP * vec4(position, 1.0);\n"
         "}\n";
 
-    const char* defaultFG = 
-        "#version 120"
-        "varying vec3 vColor;\n"
-        
+    static constexpr const char* DEFAULT_FRAGMENT_SHADER =
+        "#version 330 core\n"
+        "in vec3 vColor;\n"
+        "out vec4 FragColor;\n"
         "void main() {\n"
-            "gl_FragColor = vec4(vColor, 1.0);\n"
-        "}";
+        "    FragColor = vec4(vColor, 1.0);\n"
+        "}\n";
 
-    char* sourceFG, sourceVX;
+    GLuint program_ = 0;
 
+    GLuint compileShader(GLenum type, const char* source);
     void checkCompileErrors(GLuint shader, const std::string& type);
     void checkLinkErrors(GLuint program);
-    string readFile(const std::string& filepath);
-
-    GLuint program;
+    std::string readFile(const std::string& filepath);
 };

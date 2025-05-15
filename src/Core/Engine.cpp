@@ -9,11 +9,11 @@ float Engine::TarZ = 0.0f;
 
 Engine::Engine(){
     int x = SDL_Init(SDL_INIT_VIDEO);
-    // cout << x << endl; 
+    
     if (x < 0){
         auto e = MException(__LINE__, __FILE__, SDL_GetError());
         e.ShowMessageBox();
-        // throw e;
+        handleError(__LINE__, __FILE__);
     }
 
     window = SDL_CreateWindow(
@@ -21,11 +21,7 @@ Engine::Engine(){
         800, 600, 
         SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL
     );
-    if(!window){
-        auto e = MException(__LINE__, __FILE__, SDL_GetError());
-        e.ShowMessageBox();
-        throw e;
-    }
+    if(!window){handleError(__LINE__, __FILE__);}
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -33,13 +29,7 @@ Engine::Engine(){
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     ctx = SDL_GL_CreateContext(window);
-    if (!ctx){
-        if(!window){
-            auto e = MException(__LINE__, __FILE__, SDL_GetError());
-            e.ShowMessageBox();
-            throw e;
-        }
-    }
+    if (!ctx){handleError(__LINE__, __FILE__);}
 
     if (glewInit() != GLEW_OK) {
         auto e = MException(__LINE__, __FILE__, "GLEW Initialization Failed!");
@@ -50,12 +40,15 @@ Engine::Engine(){
     glEnable(GL_TEXTURE_2D);
     assets = Assets();
 
+
     glViewport(0, 0, 800, 600);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(30, (float)8 / (float)6, 0.1, 300.0);
     glMatrixMode(GL_MODELVIEW);
     glClearColor(0.2f, 0.2f, 0.2f, 0.7f);
+
+    handleError(__LINE__, __FILE__);
 }
 
 void Engine::handleError(int line, string file) {
@@ -68,24 +61,31 @@ void Engine::handleError(int line, string file) {
 
     GLenum glErr = glGetError();
     if (glErr != GL_NO_ERROR) {
-        std::string glErrorStr;
+        string glErrorStr;
         switch (glErr) {
             case GL_INVALID_ENUM:      glErrorStr = "GL_INVALID_ENUM"; break;
             case GL_INVALID_VALUE:     glErrorStr = "GL_INVALID_VALUE"; break;
-            case GL_INVALID_OPERATION: glErrorStr = "GL_INVALID_OPERATION"; break;
+            case GL_INVALID_OPERATION: glErrorStr = "GL_INVALID_OPERATION - check that you used functions currectly"; break;
             case GL_STACK_OVERFLOW:   glErrorStr = "GL_STACK_OVERFLOW"; break;
             case GL_STACK_UNDERFLOW:   glErrorStr = "GL_STACK_UNDERFLOW"; break;
             case GL_OUT_OF_MEMORY:     glErrorStr = "GL_OUT_OF_MEMORY"; break;
             case GL_INVALID_FRAMEBUFFER_OPERATION: glErrorStr = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
             default:                   glErrorStr = "Unknown OpenGL error";
         }
-        auto e = MException(__LINE__, __FILE__, ("OpenGL Error\t"+glErrorStr).c_str());
+        auto e = MException(line, file.c_str(), ("OpenGL Error\t"+glErrorStr).c_str());
+        e.ShowMessageBox();
     }
-
-    // shader = Shader();
 }
 
-void Engine::init(const char* path){
+void Engine::handleLuaError(lua_State* L){
+    lua_Debug debug;
+    lua_getstack(L, 1, &debug);
+    lua_getinfo(L, "nSl", &debug);
+
+    handleError(debug.currentline, debug.source);
+}
+
+void Engine::init(const char* path, bool debug){
     for(auto &obj:lua_keys){
         source.setInt(obj.first, obj.second);
     }
@@ -108,12 +108,43 @@ void Engine::init(const char* path){
     source.registerFunc("mouseSetPos", mouseSetPos);
     source.registerFunc("mouseBtn", mouseBtn);
     source.registerFunc("title", title);
-    source.registerFunc("translate", translate);
     source.registerFunc("camera", setCam);
 
     source.init(path);
 
-    source.callFunc("g_init");
+    if(debug){
+        cout << "\n=== Device Information ===" << endl;
+
+        cout << "SDL Video Driver: " << SDL_GetCurrentVideoDriver() << endl;
+        cout << "SDL Render Driver: " << SDL_GetRenderDriver(0) << endl;
+
+        cout << "OpenGL Version: " << glGetString(GL_VERSION) << endl;
+        cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
+        cout << "Vendor: " << glGetString(GL_VENDOR) << endl;;
+        cout << "Renderer: " << glGetString(GL_RENDERER) << endl;
+
+        cout << "\nSupported Extensions:" << endl;
+        if (GLEW_VERSION_4_6) cout << "OpenGL 4.6 supported" << endl;
+        if (GLEW_ARB_shader_storage_buffer_object) cout << "SSBO supported" << endl;
+        if (GLEW_ARB_compute_shader) cout << "Compute Shaders supported" << endl;
+
+        GLint maxTextureSize;
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+        cout << "\nMax Texture Size: " << maxTextureSize << "x" << maxTextureSize << endl;
+
+        cout << "GLEW Version: " << glewGetString(GLEW_VERSION) << endl;
+        
+        cout << "==========================" << endl << endl;
+
+        // char* n;
+        // if (source.readBool("useShader")) {n = "on";} else { n = "off";}
+        // cout << "shader: " << n << endl;
+    }
+
+    shader = new Shader();
+    shader->init();
+
+    source.callFunc("g_init", {});
 }
 
 Engine::~Engine(){
@@ -133,15 +164,22 @@ void Engine::updateView() {
 
 void Engine::run(){
     SDL_Event event;
-    int e,s;
+    int e,s,time=0;
     while(running){
         s = SDL_GetTicks();
         while(SDL_PollEvent(&event)){
             if(event.type == SDL_EVENT_QUIT){running = false;}
-            if(event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP){
-                keyState = (Uint8*)SDL_GetKeyboardState(NULL);
-            }
-            if(event.type == SDL_EVENT_WINDOW_RESIZED){
+            if(event.type == SDL_EVENT_KEY_DOWN){
+                if(source.functionExists("g_keydown")){
+                    vector<LuaValue> args = {LuaValue((int)event.key.key)};
+                    source.callFunc("g_keydown", args);
+                }
+            } else if(event.type == SDL_EVENT_KEY_UP){
+                if(source.functionExists("g_keyup")){
+                    vector<LuaValue> args = {LuaValue((int)event.key.key)};
+                    source.callFunc("g_keyup", args);
+                }
+            } else if(event.type == SDL_EVENT_WINDOW_RESIZED){
                 int w,h;
                 SDL_GetWindowSize(window, &w, &h);
                 glViewport(0,0,w,h);
@@ -150,15 +188,20 @@ void Engine::run(){
                 glLoadIdentity();
                 gluPerspective(30, (float)w / (float)h, 0.1, 100.0);
                 glMatrixMode(GL_MODELVIEW);
+                if(source.functionExists("g_wResize")){
+                    vector<LuaValue> arguments = {LuaValue((double)w), LuaValue((double)h)};
+                    source.callFunc("g_wResize", arguments);
+                }
             }
         }
         updateView();
-        source.callFunc("g_loop");
-        handleError(__LINE__, __FILE__);
+        source.callFunc("g_loop", {LuaValue(time)});
+        // handleError(__LINE__, __FILE__);
 
         SDL_GL_SwapWindow(window);
         e = SDL_GetTicks();
-        SDL_Delay((e-s)/2);
+        time = (e-s)/2;
+        SDL_Delay(time);
     }
 }
 
@@ -184,8 +227,6 @@ int Engine::color(lua_State* L){
         if (g < 0){g = 0;}
         if (b < 0){b = 0;}
         glColor3f(r,g,b);
-
-        handleError(__LINE__, __FILE__);
     } catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -221,7 +262,6 @@ int Engine::fill(lua_State* L){
 
         glClearColor(r,g,b,1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        handleError(__LINE__, __FILE__);
     } catch (exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -256,7 +296,7 @@ int Engine::btn(lua_State* L) {
         lua_pushboolean(L, isPressed);
         return 1;
     } 
-    catch (const std::exception& error) {
+    catch (const exception& error) {
         return luaL_error(L, "btn error: %s", error.what());
     }
     return 0;
@@ -281,8 +321,6 @@ int Engine::vertex3(lua_State* L) {
         float z = luaL_checknumber(L, 3);
 
         glVertex3f(x,y,z);
-
-        handleError(__LINE__, __FILE__);
     }
     catch (exception error) {
         auto e = MException(__LINE__, __FILE__, error.what());
@@ -310,7 +348,6 @@ int Engine::beginDraw(lua_State* L){
         double MODE = luaL_checknumber(L, 1);
 
         glBegin(MODE);
-        handleError(__LINE__, __FILE__);
     }
     catch (exception error) {
         auto e = MException(__LINE__, __FILE__, error.what());
@@ -330,7 +367,6 @@ int Engine::endDraw(lua_State* L){
         }
 
         glEnd();
-        handleError(__LINE__, __FILE__);
     }
     catch (exception error) {
         auto e = MException(__LINE__, __FILE__, error.what());
@@ -360,7 +396,7 @@ int Engine::rotate(lua_State* L){
         float angle = luaL_checknumber(L, 4);
 
         glRotatef(angle, x, y, z);
-        handleError(__LINE__, __FILE__);
+        handleLuaError(L);
     } catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -386,7 +422,6 @@ int Engine::loadTexture(lua_State* L){
         int id = assets.load(path);
         
         lua_pushinteger(L, id);
-        handleError(__LINE__, __FILE__);
         return 1;
     } 
     catch(exception& error) {
@@ -422,7 +457,6 @@ int Engine::useTexture(lua_State* L){
         }
 
         glBindTexture(GL_TEXTURE_2D, texture);
-        handleError(__LINE__, __FILE__);
     } catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -448,7 +482,6 @@ int Engine::texCoord(lua_State* L){
         float x = luaL_checknumber(L, 1);
         float y = luaL_checknumber(L, 2);
         glTexCoord2f(x,y);
-        handleError(__LINE__, __FILE__);
     } catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();
@@ -536,6 +569,7 @@ int Engine::title(lua_State* L){
         }
         string title = luaL_checkstring(L, 1);
         SDL_SetWindowTitle(window, title.c_str());
+
         return 0; 
     } catch (exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
@@ -544,33 +578,6 @@ int Engine::title(lua_State* L){
     }
 
 
-    return 0;
-}
-
-int Engine::translate(lua_State* L){
-    if (lua_gettop(L) != 3){
-        lua_pushstring(L, "Error: 'translate' Expected 3 arguments (x,y,z)");
-        lua_error(L); 
-        return 0;
-    }
-
-    try{
-        if (!ctx){
-            lua_pushstring(L, "OpenGL is not initilized yet.");
-            lua_error(L); 
-            return 0;
-        }
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
-        float z = luaL_checknumber(L, 3);
-
-        glTranslatef(x,y,z);
-        handleError(__LINE__, __FILE__);
-    }catch(exception error){
-        auto e = MException(__LINE__, __FILE__, error.what());
-        e.ShowMessageBox();
-        throw e;
-    }
     return 0;
 }
 
@@ -620,6 +627,7 @@ int Engine::mouseSetPos(lua_State* L){
         double x = luaL_checknumber(L, 1);
         double y = luaL_checknumber(L, 2);
         SDL_WarpMouseInWindow(window, x, y);
+
     }catch(exception error){
         auto e = MException(__LINE__, __FILE__, error.what());
         e.ShowMessageBox();

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameBox Engine | Powerful HTML5 Game Development</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="shortcut icon" href="./favicon.png" type="image/png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-lua.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
+        
+        .code-block {
+            background: #1e1e2e;
+            border-left: 4px solid #7e3af2;
+        }
+        
+        .lua-keyword { color: #c678dd; }
+        .lua-function { color: #61afef; }
+        .lua-number { color: #d19a66; }
+        .lua-string { color: #98c379; }
+        .lua-comment { color: #5c6370; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#8b5cf6',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                    },
+                    fontFamily: {
+                        'display': ['"Press Start 2P"', 'cursive'],
+                        'body': ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Press+Start+2P&display=swap');
+
+        .gradient-text {
+            background: linear-gradient(45deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .code-block {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+        }
+
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .sidebar-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid #6366f1;
+        }
+
+        .sidebar-link.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 4px solid #6366f1;
+            font-weight: 600;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.11.2/ace.js"></script>
+</head>
+
+<body class="bg-dark text-light font-body h-screen">
+    <div class="h-full">
+        <br>
+        <h2 class="text-center text-4xl font-semibold">GameBox Web Editor</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 p-3 h-3/4">
+            <div>
+                <div class="flex flex-row" style="position: absolute; margin-right: 0px; margin-top: 0px; z-index: 7; direction: rtl;">
+                    <button id="play" class="w-12 h-12 rounded-full bg-primary bg-opacity-20 flex items-center justify-center mr-4">
+                        <i class="fas fa-play text-primary text-xl"></i>
+                    </button>
+                </div>
+            <div id="editor" class="rounded-lg shadow-lg p-2 h-full">function g_init(){
+    //startup function
+}
+
+function g_loop(){
+    //it will call every frame    
+}</div></div>
+            <div class="px-4 h-full">
+                <div
+                    class="relative bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 shadow-2xl h-full">
+                    <div class="bg-slate-900 px-4 py-3 border-b border-slate-700 flex space-x-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                    <div class="p-4 h-full">
+                        <canvas id="window w-full h-full"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-3" style="height: 100%;">
+            <pre class="text-green-400 bg-slate-900 rounded-lg p-4 overflow-y-auto" id="terminal">
+Hello. its console...
+Hello. its console...
+Hello. its console...
+Hello. its console...
+</pre>
+        </div>
+    </div>
+
+    <script>
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/javascript");
+        editor.setOptions({
+            fontFamily: "Fira Code, monospace",
+            enableLiveAutocompletion: true,
+            enableBasicAutocompletion: true,
+            showPrintMargin: false,
+        });
+
+    </script>
+</body>
+
+</html>

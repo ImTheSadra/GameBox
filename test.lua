@@ -1,13 +1,19 @@
 local texture = 0
 local angle = 0
 
+useShader = false
+
 function g_init()
     texture = loadTexture("gbox.png")
     title("GBox Demo")
+    camera(
+        math.sin(angle)*4,0,math.cos(angle)*4,
+        0,0,0
+    )
 end
 
-function g_loop()
-    fill(1, 0.8, 1)
+function g_loop(time)
+    fill(0.3, 0.3, 0.3)
 
     useTexture(texture)
     
@@ -28,10 +34,22 @@ function g_loop()
     endDraw()
 
     if btn(K_SPACE) then
-        angle = angle+0.01
+        angle = angle+0.01*time
         camera(
             math.sin(angle)*4, 0, math.cos(angle)*4,
             0,0,0
         )
     end
+end
+
+function g_wResize(w,h)
+    print("resized to -> ",w,h)
+end
+
+function g_keydown(key)
+
+end
+
+function g_keyup(key)
+    
 end
