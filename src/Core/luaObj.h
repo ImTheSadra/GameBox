@@ -32,6 +32,13 @@ static unordered_map<char*, int> lua_keys{
     {"K_B", SDLK_B},    {"K_V", SDLK_V},
     {"K_C", SDLK_C},    {"K_X", SDLK_X},
     {"K_Z", SDLK_Z},
+
+    //JOYSTIC
+    {"JK_1", 0},    {"JK_2", 1},
+    {"JK_3", 2},    {"JK_4", 3},
+    {"JK_L1", 4},   {"JK_L2", 5},
+    {"JK_R1", 6},   {"JK_R2", 7},
+    {"JK_9", 8},    {"JK_10", 9}
 };
 
 static unordered_map<char*, int> gl_objects{

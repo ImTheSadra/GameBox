@@ -44,7 +44,6 @@ int WINAPI WinMain(
         if (strcmp(arg, "-d") == 0 || strcmp(arg, "--debug") == 0) {
             debug = true;
             delete[] arg;
-            cout << "debugging mode is on" << endl;
             continue;
         }
         
@@ -95,13 +94,50 @@ int WINAPI WinMain(
 
 #else
 
+#include <cstring>
+#include <cstdio>
+
 int main(int argc, char* argv[]) {
+    bool debug = false;
+    
     if (argc < 2) {
-        printf("Usage: %s <script.lua> \n", argv[0]);
+        printf("Usage: %s <script.lua> [options]\n"
+               "Options:\n"
+               "  -d, --debug   Enable debug mode\n"
+               "  -h, --help    Show this help message\n", argv[0]);
         return 1;
     }
-    
-    run(argv[1], true);
+
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--debug") == 0) {
+            debug = true;
+            continue;
+        }
+        
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+            cout << __G_NAME__ << " Engine v" << __G_VERSION__ << endl;
+            printf("Usage: %s <script.lua> [options]\n\n"
+                   "Options:\n"
+                   "  -d, --debug   Enable debug mode\n"
+                   "  -h, --help    Show this help message\n", argv[0]);
+            return 0;
+        }
+    }
+
+    char* filepath = nullptr;
+    for (int i = 1; i < argc; i++) {
+        if (argv[i][0] != '-') {
+            filepath = argv[i];
+            break;
+        }
+    }
+
+    if (!filepath) {
+        printf("Error: No script file specified\n");
+        return 1;
+    }
+
+    run(filepath, debug);
     return 0;
 }
 

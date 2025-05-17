@@ -7,13 +7,19 @@ float Engine::TarX = 0.0f;
 float Engine::TarY = 0.0f;
 float Engine::TarZ = 0.0f;
 
+// unordered_map<SDL_JoystickID, SDL_Joystick*> Joysticks = {};
+
 Engine::Engine(){
-    int x = SDL_Init(SDL_INIT_VIDEO);
+    int x = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
     
     if (x < 0){
         auto e = MException(__LINE__, __FILE__, SDL_GetError());
         e.ShowMessageBox();
-        handleError(__LINE__, __FILE__);
+    }
+
+    if (!TTF_Init()){
+        auto e = MException(__LINE__, __FILE__, SDL_GetError());
+        e.ShowMessageBox();
     }
 
     window = SDL_CreateWindow(
@@ -109,6 +115,10 @@ void Engine::init(const char* path, bool debug){
     source.registerFunc("mouseBtn", mouseBtn);
     source.registerFunc("title", title);
     source.registerFunc("camera", setCam);
+    source.registerFunc("listJoysticks", listJoysticks);
+    source.registerFunc("joyName", getJoystickName);
+    source.registerFunc("joyOpen", joystickOpen);
+    source.registerFunc("joyRumble", joystickRumble);
 
     source.init(path);
 
@@ -135,10 +145,6 @@ void Engine::init(const char* path, bool debug){
         cout << "GLEW Version: " << glewGetString(GLEW_VERSION) << endl;
         
         cout << "==========================" << endl << endl;
-
-        // char* n;
-        // if (source.readBool("useShader")) {n = "on";} else { n = "off";}
-        // cout << "shader: " << n << endl;
     }
 
     shader = new Shader();
@@ -148,6 +154,10 @@ void Engine::init(const char* path, bool debug){
 }
 
 Engine::~Engine(){
+    for(auto j:Joysticks){
+        SDL_CloseJoystick(j.second);
+    }
+
     SDL_GL_DestroyContext(ctx);
     SDL_DestroyWindow(window);
 }
@@ -191,6 +201,34 @@ void Engine::run(){
                 if(source.functionExists("g_wResize")){
                     vector<LuaValue> arguments = {LuaValue((double)w), LuaValue((double)h)};
                     source.callFunc("g_wResize", arguments);
+                }
+            } else if (event.type == SDL_EVENT_JOYSTICK_ADDED){
+                if(source.functionExists("g_joystickAdded")){
+                    source.callFunc("g_joystickAdded", {LuaValue((int)event.jdevice.which)});
+                }
+            } else if (event.type == SDL_EVENT_JOYSTICK_REMOVED){
+                if(source.functionExists("g_joystickRemoved")){
+                    source.callFunc("g_joystickRemoved", {LuaValue((int)event.jdevice.which)});
+                }
+            } else if (event.type == SDL_EVENT_JOYSTICK_BUTTON_DOWN){
+                if(source.functionExists("g_joykeydown")){
+                    source.callFunc("g_joykeydown", 
+                        {LuaValue((int)event.jbutton.which), LuaValue((int)event.jbutton.button)});
+                }
+            } else if (event.type == SDL_EVENT_JOYSTICK_BUTTON_UP){
+                if(source.functionExists("g_joykeyup")){
+                    source.callFunc("g_joykeyup", 
+                        {LuaValue((int)event.jbutton.which), LuaValue((int)event.jbutton.button)});
+                }
+            } else if (event.type == SDL_EVENT_JOYSTICK_AXIS_MOTION){
+                if(source.functionExists("g_joyAxisMove")){
+                    float normalized = event.jaxis.value / 32768.0f;
+                    int axis = 0;
+                    if (!event.jaxis.axis){axis = event.jaxis.axis;}
+                    if (abs(normalized) < 0.2f) {
+                        normalized = 0.0f;
+                    }
+                    source.callFunc("g_joyAxisMove", {LuaValue((int)event.jaxis.which), LuaValue((float)normalized), LuaValue(0)});
                 }
             }
         }
@@ -664,5 +702,159 @@ int Engine::mouseVisible(lua_State* L){
         e.ShowMessageBox();
         throw e;
     }
+    return 0;
+}
+
+int Engine::listJoysticks(lua_State* L){
+    try{
+        vector<SDL_JoystickID> ids{};
+    
+        SDL_JoystickID* joys = SDL_GetJoysticks(NULL);
+        if (joys) {
+            for (int i = 0; joys[i]; i++) {
+                ids.push_back(joys[i]);
+            }
+            SDL_free(joys);
+        }
+
+        lua_createtable(L, ids.size(), 0);
+        for (size_t i = 0; i < ids.size(); i++) {
+            lua_pushinteger(L, ids[i]);
+            lua_rawseti(L, -2, i + 1);
+        }
+
+        return 1;
+    }catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+    return 0;
+}
+
+int Engine::getJoystickName(lua_State* L){
+    if (lua_gettop(L) != 1){
+        lua_pushstring(L, "Error: 'joyName' Expected 1 arguments (id)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        SDL_JoystickID instanceId = static_cast<SDL_JoystickID>(luaL_checkinteger(L, 1));
+    
+        auto it = Joysticks.find(instanceId);
+        if (it == Joysticks.end()) {
+            return luaL_error(L, "Error: Joystick not opened");
+        }
+        
+        const char* name = SDL_GetJoystickName(it->second);
+        if (!name) {
+            return luaL_error(L, "Error: Could not get joystick name");
+        }
+        
+        lua_pushstring(L, name);
+
+        return 1;
+    }catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+    return 0;
+}
+
+int Engine::joystickOpen(lua_State* L){
+    if (lua_gettop(L) != 1){
+        lua_pushstring(L, "Error: 'joyOpen' Expected 1 arguments (id)");
+        lua_error(L); 
+        return 0;
+    }
+
+    try{
+        SDL_JoystickID instanceId = static_cast<SDL_JoystickID>(luaL_checkinteger(L, 1));
+
+        SDL_Joystick* joystick = SDL_OpenJoystick(instanceId);
+        if (!joystick) {
+            lua_pushstring(L, ("SDL JoyStick Error : " + (string)SDL_GetError()).c_str());
+            lua_error(L);
+            return 0;
+        }
+        Joysticks.insert(pair<SDL_JoystickID, SDL_Joystick*>(instanceId, joystick));
+        lua_pushinteger(L, (int)instanceId);
+        return 1;
+    }catch(exception error){
+        auto e = MException(__LINE__, __FILE__, error.what());
+        e.ShowMessageBox();
+        throw e;
+    }
+
+    return 0;
+}
+
+int Engine::joystickRumble(lua_State* L) {
+    if (lua_gettop(L) != 4) {
+        return luaL_error(L, "Error: 'joyRumble' expected 4 arguments (id, L_strength, R_strength, duration_ms)");
+    }
+
+    try {
+        SDL_JoystickID instanceId = static_cast<SDL_JoystickID>(luaL_checkinteger(L, 1));
+        float ls = static_cast<float>(luaL_checknumber(L, 2));
+        float rs = static_cast<float>(luaL_checknumber(L, 3));
+        Uint32 duration_ms = static_cast<Uint32>(luaL_checkinteger(L, 4));
+
+        if (ls < 0.0f || ls > 1.0f || rs < 0.0f || rs > 1.0f) {
+            return luaL_error(L, "Error: strength must be between 0.0 and 1.0");
+        }
+        
+        auto it = Joysticks.find(instanceId);
+        if (it == Joysticks.end()) {
+            return luaL_error(L, "Error: Joystick not opened or invalid ID");
+        }
+
+        SDL_Joystick* joystick = it->second;
+
+        if (SDL_RumbleJoystick(joystick, 
+                              static_cast<Uint16>(ls * 0xFFFF),
+                              static_cast<Uint16>(rs * 0xFFFF),
+                              duration_ms) != 0) {
+            return luaL_error(L, ("SDL Error: " + std::string(SDL_GetError())).c_str());
+        }
+
+        lua_pushboolean(L, true);
+        return 1;
+
+    } catch (const std::exception& error) {
+        return luaL_error(L, ("Error in joyRumble: " + std::string(error.what())).c_str());
+    } catch (...) {
+        return luaL_error(L, "Unknown error in joyRumble");
+    }
+}
+
+int Engine::joystickGetAxis(lua_State* L){
+    if (lua_gettop(L) != 1) {
+        return luaL_error(L, "Error: 'joyAxis' expected 4 arguments (id)");
+    }
+
+    try{
+        SDL_JoystickID instanceId = static_cast<SDL_JoystickID>(luaL_checkinteger(L, 1));
+
+        auto it = Joysticks.find(instanceId);
+        if (it == Joysticks.end()) {
+            return luaL_error(L, "Error: Joystick not opened or invalid ID");
+        }
+        float x,y;
+        x = SDL_GetJoystickAxis(it->second, 0);
+        y = SDL_GetJoystickAxis(it->second, 1);
+
+        lua_pushnumber(L, x/32767);
+        lua_pushnumber(L, y/32767);
+
+        return 1;
+    } catch (exception error){
+        MException(__LINE__, __FILE__, error.what());
+    }
+
     return 0;
 }

@@ -7,6 +7,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 #include <SDL3/SDL_opengl.h>
+#include <SDL3_ttf/SDL_ttf.h>
 
 ;
 static Uint8* keyState;
@@ -37,6 +38,11 @@ public:
     static int mouseVisible(lua_State* L);
     static int title(lua_State* L);
     static int setCam(lua_State* L);
+    static int listJoysticks(lua_State* L);
+    static int getJoystickName(lua_State* L);
+    static int joystickOpen(lua_State* L);
+    static int joystickRumble(lua_State* L);
+    static int joystickGetAxis(lua_State* L);
 private:
     static void handleError(int line, string file);
     static void handleLuaError(lua_State* state);

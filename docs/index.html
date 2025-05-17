@@ -540,14 +540,14 @@ end</code></pre>
                             <div class="text-primary text-2xl mb-3">
                                 <i class="fas fa-gamepad"></i>
                             </div>
-                            <h4 class="font-semibold text-slate-200 mb-2">g_loop</h4>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_loop(delta_time)</h4>
                             <p class="text-slate-400">runs in each frame</p>
                         </div>
                         <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <div class="text-primary text-2xl mb-3">
                                 <i class="fas fa-paint-brush"></i>
                             </div>
-                            <h4 class="font-semibold text-slate-200 mb-2">g_wResize</h4>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_wResize(width, height)</h4>
                             <p class="text-slate-400">it will be called when window is resized</p>
                         </div>
 
@@ -555,15 +555,36 @@ end</code></pre>
                             <div class="text-primary text-2xl mb-3">
                                 <i class="fas fa-paint-brush"></i>
                             </div>
-                            <h4 class="font-semibold text-slate-200 mb-2">g_keydown</h4>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_keydown(key)</h4>
                             <p class="text-slate-400">it will be called when a key is pressed</p>
                         </div>
                         <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
                             <div class="text-primary text-2xl mb-3">
                                 <i class="fas fa-paint-brush"></i>
                             </div>
-                            <h4 class="font-semibold text-slate-200 mb-2">g_keyup</h4>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_keyup(key)</h4>
                             <p class="text-slate-400">it will be called when a key is released</p>
+                        </div>
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_joystickAdded(device_id)</h4>
+                            <p class="text-slate-400">it will be called when a joystick device added</p>
+                        </div>
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_joykeydown(device_id, key)</h4>
+                            <p class="text-slate-400">it will be called when a joystick key is pressed</p>
+                        </div>
+                        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700">
+                            <div class="text-primary text-2xl mb-3">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h4 class="font-semibold text-slate-200 mb-2">g_joyAxisMove(device_id, num, axis_direction)</h4>
+                            <p class="text-slate-400">it will be called when joy stick axis is moving</p>
                         </div>
                     </div>
                 </div>
@@ -575,24 +596,42 @@ end</code></pre>
 
                     <div class="code-block rounded-xl p-6 mb-6">
                         <pre class="text-sm text-green-400 font-mono overflow-x-auto"><code class="language-lua">
-function g_loop()
+function g_loop(time)
     --it will used in each frame rendering
 end
 
 function g_wResize(w,h)
-    fill(0.5,0.5,0.5)
+    print("resized to -> ",w,h)
+end
+
+function g_joystickAdded(id)
+    joyOpen(id)
+    print(id, " - ", joyName(id), " - connected")
+end
+
+function g_joykeydown(device, btn)
+    joyRumble(device, 1, 1, 1000)
+    print(device, "-> pressed ", btn)
+    --btn is something like JK_1, JK_2, ...
+end
+
+function g_joyAxisMove(device, num, a)
+    am = -num;
+    --a is 0 or 1 (0 means its in x and 1 in y)
 end
 
 function g_keydown(key)
-    if key == K_W then
-        print(key, "is K_W")
-    else 
-        print(key," is pressed")
+    print(key, "pressed")
+    if k == K_RIGHT then
+        am = 1
+    end
+    if k == K_LEFT then
+        am = -1
     end
 end
 
 function g_keyup(key)
-    print(key," is released")
+    am = 0
 end</code></pre>
                     </div>
                 </div>

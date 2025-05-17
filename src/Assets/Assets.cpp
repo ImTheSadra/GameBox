@@ -9,6 +9,10 @@ int Assets::load(const char* path) {
         return -1; 
     }
 
+    return loadFromSurface(surface);
+}
+
+int Assets::loadFromSurface(SDL_Surface* surface){
     GLuint textureID;
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -28,6 +32,14 @@ int Assets::load(const char* path) {
 
     return id;
 }
+
+// void Assets::setFont(const char* path){
+//     this->font = new GFont(path, 20);
+// }
+
+// int Assets::renderText(const char* text, SDL_Color color, const int size){
+//     return loadFromSurface(this->font->write((string)text, color, size));
+// }
 
 GLuint Assets::get(int id) {
     if (textures.find(id) != textures.end()) {

@@ -9,6 +9,7 @@ extern "C" {
 #include <SDL3/SDL.h>
 #include <vector>
 #include "LuaValue.h"
+#include <unordered_map>
 #include "../Assets/Assets.h"
 #include "../Assets/Shader.h"
 
@@ -18,6 +19,7 @@ static SDL_Window* window;
 static SDL_GLContext ctx;
 static Assets assets;
 static Shader* shader;
+static unordered_map<SDL_JoystickID, SDL_Joystick*> Joysticks = {};
 
 class Source {
 public:

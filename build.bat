@@ -9,7 +9,7 @@ set GLEW=D:\code\packages\c++\glew
 set output=bin\GBox.exe
 set assets_dir=assets
 set build_dir=build
-set FLAGS=-Wno-all --std=c++17 -Wno-write-strings -lgdi32 -I%SDL%\include -I%LUA%\include -I%GLEW%\include -L%SDL%\lib -L%LUA%\lib -L%GLEW%\lib -lSDL3 -llua -lglew32 -lopengl32 -lglew32mx -lglu32 -lSDL3_image
+set FLAGS=-Wno-all --std=c++17 -Wno-write-strings -lgdi32 -I%SDL%\include -I%LUA%\include -I%GLEW%\include -L%SDL%\lib -L%LUA%\lib -L%GLEW%\lib -lSDL3 -llua -lglew32 -lopengl32 -lglew32mx -lglu32 -lSDL3_image -lSDL3_ttf
 
 :: ===== Prepare Directories =====
 if not exist "bin" mkdir "bin"
