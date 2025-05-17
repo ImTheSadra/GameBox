@@ -1,7 +1,7 @@
 #!/bin/bash
 
 OUTPUT="./bin/GBox"
-FLAGS="-Wno-all -Wno-write-strings $(pkg-config --cflags --libs lua glew glu opengl sdl3) -lSDL3_image"
+FLAGS="-Wno-all -Wno-write-strings $(pkg-config --cflags --libs lua glew glu opengl sdl3) -lSDL3_image -lSDL3_ttf"
 
 mkdir -p bin
 

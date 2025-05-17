@@ -815,11 +815,12 @@ int Engine::joystickRumble(lua_State* L) {
 
         SDL_Joystick* joystick = it->second;
 
-        if (SDL_RumbleJoystick(joystick, 
-                              static_cast<Uint16>(ls * 0xFFFF),
-                              static_cast<Uint16>(rs * 0xFFFF),
-                              duration_ms) != 0) {
-            return luaL_error(L, ("SDL Error: " + std::string(SDL_GetError())).c_str());
+        if (!SDL_RumbleJoystick(joystick, 
+            static_cast<Uint16>(ls * 0xFFFF),
+            static_cast<Uint16>(rs * 0xFFFF),
+            duration_ms) != 0) 
+        {
+        return luaL_error(L, ("SDL Error: " + std::string(SDL_GetError())).c_str());
         }
 
         lua_pushboolean(L, true);

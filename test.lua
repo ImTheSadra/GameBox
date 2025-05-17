@@ -60,7 +60,12 @@ function g_joystickAdded(id)
 end
 
 function g_joykeydown(device, btn)
-    joyRumble(device, 1, 1, 1000)
+    if btn == 5 then 
+        joyRumble(device, 0, 1, 500)
+    end
+    if btn == 4 then 
+        joyRumble(device, 1, 0, 500)
+    end
     print(device, "-> pressed ", btn)
 end
 
